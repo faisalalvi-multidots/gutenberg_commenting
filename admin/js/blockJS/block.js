@@ -275,6 +275,8 @@ const mdComment = {
             var referenceNode = document.getElementById('md-span-comments');
 
             const {onChange, value, activeAttributes} = this.props;
+
+            // Remove tags if selected tag ID exist in 'remove-comment' attribute of body.
             let removedComments = jQuery('body').attr('remove-comment');
             if (undefined !== activeAttributes.datatext &&
                 ( undefined !== removedComments && removedComments.indexOf(activeAttributes.datatext) !== -1  )
@@ -291,14 +293,13 @@ const mdComment = {
                 // Sync popups with highlighted texts.
                 jQuery('.wp-block mdspan').each(function () {
 
-                    // `this` is the div
                     selectedText = jQuery(this).attr('datatext');
 
                     // This will help to create CTRL-Z'ed Text's popup.
                     // remove this logic... <-- ne_pending, instead, remove highlight after CTRL-Z
                     // because we will not have comments in Board so we should not create new!
                     // user will have to add comment from scratch.
-                    if (jQuery('#' + selectedText).length === 0) {
+                    if (undefined !== selectedText && jQuery('#' + selectedText).length === 0) {
 
                         let removedComments = jQuery('body').attr('remove-comment');
                         if ( undefined === removedComments ||
@@ -365,10 +366,22 @@ const mdComment = {
 
         floatComments(selectedText) {
 
-            //jQuery(window).scroll(function() {
             if (jQuery('mdspan[data-rich-text-format-boundary="true"]').length !== 0) {
-                //let scrollTop = jQuery(window).scrollTop();
-                let scrollTop = jQuery('.edit-post-layout__content').scrollTop();
+
+                var scrollTop = '';
+                if( 0 !== jQuery('.block-editor-editor-skeleton__content').length ) {
+                    // Latest WP Version
+                    scrollTop = jQuery('.block-editor-editor-skeleton__content').scrollTop();
+
+                } else if( 0 !== jQuery('.edit-post-layout__content').length ) {
+                    // Old WP Versions
+                    scrollTop = jQuery('.edit-post-layout__content').scrollTop();
+
+                } else {
+                    // Default
+                    scrollTop = jQuery('body').scrollTop();
+                }
+
                 let commentTop = jQuery('mdspan[data-rich-text-format-boundary="true"]').offset().top;
                 let currentPopupTop = jQuery('#' + selectedText + '.cls-board-outer').offset().top;
                 let commentColTop = jQuery('#md-span-comments').offset().top;
@@ -376,7 +389,7 @@ const mdComment = {
                 diff = commentColTop + diff + scrollTop;
 
                 jQuery('#md-span-comments').css({
-                    'top': diff - 200
+                    'top': diff - 150
                 });
             }
 

@@ -58,6 +58,8 @@ class Commenting_block_Admin {
 
 	public function mdgcf_post_status_changes( $post_ID, $post, $update ) {
 
+		$p_content = $post->post_content;
+
 		// Publish drafts from the 'current_drafts' stack.
 		$current_drafts = get_post_meta( $post_ID, 'current_drafts', true );
 		$current_drafts = maybe_unserialize( $current_drafts );
@@ -122,12 +124,23 @@ class Commenting_block_Admin {
 		if ( isset( $current_drafts['comments'] ) && 0 !== count( $current_drafts['comments'] ) ) {
 			$new_drafts = $current_drafts['comments'];
 			foreach ( $new_drafts as $el => $drafts ) {
-				$prev_state = get_post_meta( $post_ID, $el, true );
-				$prev_state = maybe_unserialize( $prev_state );
-				foreach ( $drafts as $d ) {
-					$prev_state['comments'][ $d ]['status'] = 'publish';
+
+				/*
+				 * Make publish only if its tag available in the content.
+				 * Doing this to handle the CTRL-Z action.
+				 * Sometimes CTRL-Z does not removes the tag completely
+				 * but only removes its attributes, so we cant find 'datatext' attribute,
+				 * So skipping those mdspan tags which has no 'datatext' attribute.
+				 */
+				$elid = str_replace( '_', '', $el );
+				if ( strpos( $p_content, $elid ) !== false ) {
+					$prev_state = get_post_meta( $post_ID, $el, true );
+					$prev_state = maybe_unserialize( $prev_state );
+					foreach ( $drafts as $d ) {
+						$prev_state['comments'][ $d ]['status'] = 'publish';
+					}
+					update_post_meta( $post_ID, $el, $prev_state );
 				}
-				update_post_meta( $post_ID, $el, $prev_state );
 			}
 		}
 

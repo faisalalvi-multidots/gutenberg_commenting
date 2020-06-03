@@ -281,7 +281,7 @@ div#Div1 {
     top: 70px;
     background: #fff;
     padding: 20px;
-    z-index: 90;
+    z-index: 99;
     box-sizing: border-box;
     opacity: 1;
     max-height: calc(90vh - 100px);
@@ -493,7 +493,7 @@ mdspan[data-rich-text-format-boundary="true"] {
     top: 250px;
     right: 15px;
     transition: all 0.5s;
-    z-index: 9;
+    z-index: 99;
 }
 
 .character-map-popover .components-popover__content {

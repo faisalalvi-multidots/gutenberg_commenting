@@ -365,6 +365,8 @@ var mdComment = {
                     value = _props2.value,
                     activeAttributes = _props2.activeAttributes;
 
+                // Remove tags if selected tag ID exist in 'remove-comment' attribute of body.
+
                 var removedComments = jQuery('body').attr('remove-comment');
                 if (undefined !== activeAttributes.datatext && undefined !== removedComments && removedComments.indexOf(activeAttributes.datatext) !== -1) {
                     onChange(removeFormat(value, name));
@@ -379,14 +381,13 @@ var mdComment = {
                     // Sync popups with highlighted texts.
                     jQuery('.wp-block mdspan').each(function () {
 
-                        // `this` is the div
                         selectedText = jQuery(this).attr('datatext');
 
                         // This will help to create CTRL-Z'ed Text's popup.
                         // remove this logic... <-- ne_pending, instead, remove highlight after CTRL-Z
                         // because we will not have comments in Board so we should not create new!
                         // user will have to add comment from scratch.
-                        if (jQuery('#' + selectedText).length === 0) {
+                        if (undefined !== selectedText && jQuery('#' + selectedText).length === 0) {
 
                             var _removedComments = jQuery('body').attr('remove-comment');
                             if (undefined === _removedComments || undefined !== _removedComments && _removedComments.indexOf(selectedText) === -1) {
@@ -444,10 +445,20 @@ var mdComment = {
             key: 'floatComments',
             value: function floatComments(selectedText) {
 
-                //jQuery(window).scroll(function() {
                 if (jQuery('mdspan[data-rich-text-format-boundary="true"]').length !== 0) {
-                    //let scrollTop = jQuery(window).scrollTop();
-                    var scrollTop = jQuery('.edit-post-layout__content').scrollTop();
+
+                    var scrollTop = '';
+                    if (0 !== jQuery('.block-editor-editor-skeleton__content').length) {
+                        // Latest WP Version
+                        scrollTop = jQuery('.block-editor-editor-skeleton__content').scrollTop();
+                    } else if (0 !== jQuery('.edit-post-layout__content').length) {
+                        // Old WP Versions
+                        scrollTop = jQuery('.edit-post-layout__content').scrollTop();
+                    } else {
+                        // Default
+                        scrollTop = jQuery('body').scrollTop();
+                    }
+
                     var commentTop = jQuery('mdspan[data-rich-text-format-boundary="true"]').offset().top;
                     var currentPopupTop = jQuery('#' + selectedText + '.cls-board-outer').offset().top;
                     var commentColTop = jQuery('#md-span-comments').offset().top;
@@ -455,7 +466,7 @@ var mdComment = {
                     diff = commentColTop + diff + scrollTop;
 
                     jQuery('#md-span-comments').css({
-                        'top': diff - 200
+                        'top': diff - 150
                     });
                 }
             }
@@ -574,7 +585,7 @@ var Board = function (_React$Component) {
                     var removed_comments = jQuery('body').attr('remove-comment');
                     removed_comments = undefined !== removed_comments ? removed_comments + ',' + elIDRemove : elIDRemove;
                     jQuery('body').attr('remove-comment', removed_comments);
-                    jQuery('body').append('<style>[datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
+                    jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
                     jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
                     jQuery('#' + elIDRemove).remove();
 
@@ -994,7 +1005,7 @@ var Comment = function (_React$Component) {
                 var removedComments = jQuery('body').attr('remove-comment');
                 removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
                 jQuery('body').attr('remove-comment', removedComments);
-                jQuery('body').append('<style>[datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
+                jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
 
                 if (null === onChanged || undefined === onChanged) {
                     jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');

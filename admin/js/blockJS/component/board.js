@@ -43,7 +43,7 @@ export default class Board extends React.Component {
                     let removed_comments = jQuery('body').attr('remove-comment');
                     removed_comments = undefined !== removed_comments ? removed_comments + ',' + elIDRemove : elIDRemove;
                     jQuery('body').attr('remove-comment', removed_comments);
-                    jQuery('body').append('<style>[datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
+                    jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
                     jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
                     jQuery('#' + elIDRemove).remove();
 
