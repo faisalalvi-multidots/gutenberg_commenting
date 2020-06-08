@@ -56,20 +56,32 @@ class Commenting_block_Admin {
 		add_action( 'post_updated', array( $this, 'mdgcf_post_status_changes' ), 10, 3 );
 	}
 
+	public function cf_get_user() {
+
+		$current_user = wp_get_current_user();
+		$userID       = $current_user->ID;
+		$userName     = $current_user->display_name;
+		$userURL      = get_avatar_url( $userID );
+
+		echo json_encode( array( 'id' => $userID, 'name' => $userName, 'url' => $userURL ) );
+		wp_die();
+
+	}
+
 	public function cf_update_click() {
 
 		$post_ID = isset( $_POST['post_ID'] ) ? $_POST['post_ID'] : '';
 		$post    = isset( $_POST['post'] ) ? $_POST['post'] : '';
 		$update  = isset( $_POST['update'] ) ? $_POST['update'] : '';
 
-		if( ! empty( $post_ID ) ) {
+		if ( ! empty( $post_ID ) ) {
 			$this->mdgcf_post_status_changes( $post_ID, $post, $update );
 		}
 	}
 
 	public function mdgcf_post_status_changes( $post_ID, $post, $update ) {
 
-		$p_content = $post->post_content;
+		$p_content = is_object( $post ) ? $post->post_content : $post;
 
 		// Publish drafts from the 'current_drafts' stack.
 		$current_drafts = get_post_meta( $post_ID, 'current_drafts', true );
@@ -95,23 +107,25 @@ class Commenting_block_Admin {
 				// Send Email.
 				$comments = get_post_meta( $post_ID, "$el" );
 				$comments = maybe_unserialize( $comments );
-				$comments = $comments['comments'];
+				$comments = isset( $comments['comments'] ) ? $comments['comments'] : '';
 
-				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+				if ( ! empty( $comments ) && is_array( $comments ) ) {
 
-				$html = 'Hi Admin,<br><br>The following comment has been resolved:<br><br>';
+					$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
-				foreach ( $comments as $timestamp => $c ) {
+					$html = 'Hi Admin,<br><br>The following comment has been resolved:<br><br>';
 
-					foreach ( $c as $arr ) {
+					foreach ( $comments as $timestamp => $c ) {
 
-						$user_info   = get_userdata( $arr['userData'] );
-						$username    = $user_info->display_name;
-						$profile_url = get_avatar_url( $user_info->user_email );
-						$date        = date( $time_format . ' ' . $date_format, $timestamp );
-						$comment     = $arr['thread'];
+						foreach ( $c as $arr ) {
 
-						$html .= "<div className='comment-header'>
+							$user_info   = get_userdata( $arr['userData'] );
+							$username    = $user_info->display_name;
+							$profile_url = get_avatar_url( $user_info->user_email );
+							$date        = date( $time_format . ' ' . $date_format, $timestamp );
+							$comment     = $arr['thread'];
+
+							$html .= "<div className='comment-header'>
 						          <div className='avtar'><img src='$profile_url' alt='avatar' /></div>
 						          <div className='commenter-name-time'>
 						            <div className='commenter-name'>$username</div>
@@ -120,14 +134,15 @@ class Commenting_block_Admin {
 						          </div>
 					          </div>";
 
+							$html .= ' <br> ';
+						}
 						$html .= ' <br> ';
 					}
-					$html .= ' <br> ';
+
+					$html .= "<br>Thank you!";
+
+					wp_mail( 'admin@gmail.com', 'NABPilot: Comment Resolved', $html, $headers );
 				}
-
-				$html .= "<br>Thank you!";
-
-				wp_mail( 'admin@gmail.com', 'NABPilot: Comment Resolved', $html, $headers );
 			}
 		}
 
@@ -333,8 +348,6 @@ class Commenting_block_Admin {
 			$superCareerData                           = array();
 			$superCareerData['comments'][ $timestamp ] = $arr;
 			$superCareerData['commentedOnText']        = $commentList['commentedOnText'];
-			$superCareerData['value']                  = $commentList['value'];
-			$superCareerData['onChange']               = $commentList['onChange'];
 
 			update_post_meta( $current_post_id, 'th' . $metaId, get_current_user_id() );
 		}

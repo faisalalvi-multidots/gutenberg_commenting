@@ -578,7 +578,6 @@ var Board = function (_React$Component) {
 
                 _this2.commentedOnText = undefined !== _this2.commentedOnText ? _this2.commentedOnText : commentedOnText;
 
-                _this2.props.resolved = resolved;
                 if ('true' === resolved || 0 === userDetails.length) {
                     var elIDRemove = selectedText;
                     var removed_comments = jQuery('body').attr('remove-comment');
@@ -605,6 +604,28 @@ var Board = function (_React$Component) {
                 _this2.state = { comments: [postSelections] };
                 _this2.setState({ comments: postSelections });
             });
+        }
+
+        // Actions on load.
+        if (1 === _this2.props.onLoadFetch) {
+
+            // Handling Older WordPress Versions.
+            // The function wp.data.select("core").getCurrentUser() is not
+            // defined for v5.2.2, so getting data from PHP.
+            try {
+                wp.data.select("core").getCurrentUser().id;
+            } catch (e) {
+
+                // Fetch User details from AJAX.
+                jQuery.post(ajaxurl, {
+                    'action': 'cf_get_user'
+                }, function (user) {
+                    user = JSON.parse(user);
+                    localStorage.setItem("userID", user.id);
+                    localStorage.setItem("userName", user.name);
+                    localStorage.setItem("userURL", user.url);
+                });
+            }
         }
 
         _this2.state = { comments: [] };
@@ -651,10 +672,17 @@ var Board = function (_React$Component) {
             this.enableUpdateBtn();
 
             var arr = this.state.comments;
-            var userID = wp.data.select("core").getCurrentUser().id;
-            var userName = wp.data.select("core").getCurrentUser().name;
-            var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
-            userProfile = userProfile[Object.keys(userProfile)[1]];
+
+            try {
+                var userID = wp.data.select("core").getCurrentUser().id;
+                var userName = wp.data.select("core").getCurrentUser().name;
+                var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
+                userProfile = userProfile[Object.keys(userProfile)[1]];
+            } catch (e) {
+                var userID = localStorage.getItem("userID");
+                var userName = localStorage.getItem("userName");
+                var userProfile = localStorage.getItem("userURL");
+            }
 
             var newArr = {};
             newArr['userName'] = userName;
@@ -697,10 +725,16 @@ var Board = function (_React$Component) {
 
             if ('' !== newText) {
 
-                var userID = wp.data.select("core").getCurrentUser().id;
-                var userName = wp.data.select("core").getCurrentUser().name;
-                var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
-                userProfile = userProfile[Object.keys(userProfile)[1]];
+                try {
+                    var userID = wp.data.select("core").getCurrentUser().id;
+                    var userName = wp.data.select("core").getCurrentUser().name;
+                    var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
+                    userProfile = userProfile[Object.keys(userProfile)[1]];
+                } catch (e) {
+                    var userID = localStorage.getItem("userID");
+                    var userName = localStorage.getItem("userName");
+                    var userProfile = localStorage.getItem("userURL");
+                }
 
                 var arr = this.state.comments;
                 var newArr = {};
@@ -993,12 +1027,17 @@ var Comment = function (_React$Component) {
                 selectedText = _props3.selectedText,
                 index = _props3.index;
 
-            this.props.status = this.props.status ? this.props.status : 'draft';
+            var commentStatus = this.props.status ? this.props.status : 'draft';
 
-            var owner = wp.data.select("core").getCurrentUser().id;
+            try {
+                var owner = wp.data.select("core").getCurrentUser().id;
+            } catch (e) {
+                var owner = localStorage.getItem("userID");
+            }
+
             return wp.element.createElement(
                 'div',
-                { className: "commentContainer " + this.props.status, id: this.props.timestamp },
+                { className: "commentContainer " + commentStatus, id: this.props.timestamp },
                 wp.element.createElement(
                     'div',
                     { className: 'comment-header' },

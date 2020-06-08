@@ -85,11 +85,16 @@ export default class Comment extends React.Component {
 
     renderNormalMode() {
         const {lastVal, onChanged, selectedText, index} = this.props;
-        this.props.status = this.props.status ? this.props.status : 'draft';
+        const commentStatus = this.props.status ? this.props.status : 'draft';
 
-        var owner = wp.data.select("core").getCurrentUser().id;
+        try {
+            var owner = wp.data.select("core").getCurrentUser().id;
+        } catch (e) {
+            var owner = localStorage.getItem("userID");
+        }
+
         return (
-            <div className={"commentContainer " + this.props.status} id={this.props.timestamp}>
+            <div className={"commentContainer " + commentStatus} id={this.props.timestamp}>
                 <div className="comment-header">
                     <div className="avtar"><img src={this.props.profileURL} alt="avatar"/></div>
                     <div className="commenter-name-time">

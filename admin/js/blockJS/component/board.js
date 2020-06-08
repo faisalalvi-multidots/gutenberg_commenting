@@ -36,7 +36,6 @@ export default class Board extends React.Component {
                 // Update the 'commented on text' if not having value.
                 this.commentedOnText = undefined !== this.commentedOnText ? this.commentedOnText : commentedOnText;
 
-                this.props.resolved = resolved;
                 if ('true' === resolved || 0 === userDetails.length) {
                     let elIDRemove = selectedText
                     let removed_comments = jQuery('body').attr('remove-comment');
@@ -63,6 +62,29 @@ export default class Board extends React.Component {
                 this.state = {comments: [postSelections]};
                 this.setState({comments: postSelections});
             });
+        }
+
+        // Actions on load.
+        if (1 === this.props.onLoadFetch) {
+
+            // Handling Older WordPress Versions.
+            // The function wp.data.select("core").getCurrentUser() is not
+            // defined for v5.2.2, so getting data from PHP.
+            try {
+                wp.data.select("core").getCurrentUser().id;
+            } catch (e) {
+
+                // Fetch User details from AJAX.
+                jQuery.post(ajaxurl, {
+                    'action': 'cf_get_user'
+                }, function (user) {
+                    user = JSON.parse(user);
+                    localStorage.setItem("userID", user.id);
+                    localStorage.setItem("userName", user.name);
+                    localStorage.setItem("userURL", user.url);
+                });
+            }
+
         }
 
         this.state = {comments: []};
@@ -103,10 +125,17 @@ export default class Board extends React.Component {
         this.enableUpdateBtn();
 
         var arr = this.state.comments;
-        var userID = wp.data.select("core").getCurrentUser().id;
-        var userName = wp.data.select("core").getCurrentUser().name;
-        var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
-        userProfile = userProfile[Object.keys(userProfile)[1]];
+
+        try {
+            var userID = wp.data.select("core").getCurrentUser().id;
+            var userName = wp.data.select("core").getCurrentUser().name;
+            var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
+            userProfile = userProfile[Object.keys(userProfile)[1]];
+        } catch (e) {
+            var userID = localStorage.getItem("userID");
+            var userName = localStorage.getItem("userName");
+            var userProfile = localStorage.getItem("userURL");
+        }
 
         var newArr = {};
         newArr['userName'] = userName;
@@ -148,10 +177,16 @@ export default class Board extends React.Component {
 
         if ('' !== newText) {
 
-            var userID = wp.data.select("core").getCurrentUser().id;
-            var userName = wp.data.select("core").getCurrentUser().name;
-            var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
-            userProfile = userProfile[Object.keys(userProfile)[1]];
+            try {
+                var userID = wp.data.select("core").getCurrentUser().id;
+                var userName = wp.data.select("core").getCurrentUser().name;
+                var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
+                userProfile = userProfile[Object.keys(userProfile)[1]];
+            } catch (e) {
+                var userID = localStorage.getItem("userID");
+                var userName = localStorage.getItem("userName");
+                var userProfile = localStorage.getItem("userURL");
+            }
 
             var arr = this.state.comments;
             var newArr = {};
