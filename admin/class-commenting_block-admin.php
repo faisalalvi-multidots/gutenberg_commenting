@@ -56,6 +56,17 @@ class Commenting_block_Admin {
 		add_action( 'post_updated', array( $this, 'mdgcf_post_status_changes' ), 10, 3 );
 	}
 
+	public function cf_update_click() {
+
+		$post_ID = isset( $_POST['post_ID'] ) ? $_POST['post_ID'] : '';
+		$post    = isset( $_POST['post'] ) ? $_POST['post'] : '';
+		$update  = isset( $_POST['update'] ) ? $_POST['update'] : '';
+
+		if( ! empty( $post_ID ) ) {
+			$this->mdgcf_post_status_changes( $post_ID, $post, $update );
+		}
+	}
+
 	public function mdgcf_post_status_changes( $post_ID, $post, $update ) {
 
 		$p_content = $post->post_content;

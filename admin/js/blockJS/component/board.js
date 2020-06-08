@@ -66,6 +66,15 @@ export default class Board extends React.Component {
             });
         }
 
+        // On load fetching comments.
+        if (1 === this.props.onLoadFetch) {
+
+            // Removing disabled attribute from "Update" button on load.
+            // Doing so to handle the process even when content is not changed but comments are modified/added.
+            // The custom function is added in 'commenting_block-admin.js', find there 'custom_publish_handle' label.
+            jQuery('button.components-button.editor-post-publish-button').removeAttr('aria-disabled');
+        }
+
         this.state = {comments: []};
     }
 

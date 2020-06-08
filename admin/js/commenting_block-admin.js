@@ -37,7 +37,7 @@
 
             const dataid = $(this).attr('data-id');
 
-            if ( 0 !== $("#" + dataid).length) {
+            if (0 !== $("#" + dataid).length) {
                 const topOfPopup = $("#" + dataid).offset().top
                 $('.edit-post-layout__content').animate({
                     scrollTop: topOfPopup
@@ -84,6 +84,28 @@
             $('body').toggleClass('hide-comments');
             $('#comments-toggle').toggleClass('active');
         });
+
+        // Force action to publish draft comments even on clicking 'Disabled Update Button'.
+        // This function handles the process even when content is not changed but comments are modified/added.
+        // Label: 'custom_publish_handle'
+        $(document).on('click', 'button.components-button.editor-post-publish-button', function () {
+
+            const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
+            const postContent = wp.data.select('core/editor').getCurrentPost().content;
+
+            var data = {
+                'action': 'cf_update_click',
+                'post_ID': CurrentPostID,
+                'post': postContent,
+            };
+            // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+            let _this = this;
+
+            jQuery.post(ajaxurl, data, function () {
+            });
+        });
+
+
     });
 
     // Load.

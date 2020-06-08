@@ -33,7 +33,7 @@ function fetchComments() {
                 referenceNode.appendChild(newNode);
 
                 ReactDOM.render(
-                    <Board datatext={selectedText}/>,
+                    <Board datatext={selectedText} onLoadFetch={1}/>,
                     document.getElementById(selectedText)
                 )
             }

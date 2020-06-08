@@ -157,8 +157,7 @@ class Commenting_block {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'wp_ajax_mdgcf_comments_history', $plugin_admin,'mdgcf_comments_history' );
-		//$this->loader->add_action( 'transition_post_status', $plugin_admin,'mdgcf_post_status_changes' );
-
+		$this->loader->add_action( 'wp_ajax_cf_update_click', $plugin_admin,'cf_update_click' );
 		$this->loader->add_action( 'wp_ajax_my_action', $plugin_admin,'my_action' );
 		$this->loader->add_action( 'wp_ajax_my_action_edit', $plugin_admin,'my_action_edit' );
 		$this->loader->add_action( 'wp_ajax_my_action_delete', $plugin_admin,'my_action_delete' );

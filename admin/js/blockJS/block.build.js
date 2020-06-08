@@ -118,7 +118,7 @@ function fetchComments() {
                 var referenceNode = document.getElementById('md-span-comments');
                 referenceNode.appendChild(newNode);
 
-                ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__component_board__["a" /* default */], { datatext: selectedText }), document.getElementById(selectedText));
+                ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__component_board__["a" /* default */], { datatext: selectedText, onLoadFetch: 1 }), document.getElementById(selectedText));
             }
             allThreads.push(selectedText);
         });
@@ -606,6 +606,15 @@ var Board = function (_React$Component) {
                 _this2.state = { comments: [postSelections] };
                 _this2.setState({ comments: postSelections });
             });
+        }
+
+        // On load fetching comments.
+        if (1 === _this2.props.onLoadFetch) {
+
+            // Removing disabled attribute from "Update" button on load.
+            // Doing so to handle the process even when content is not changed but comments are modified/added.
+            // The custom function is added in 'commenting_block-admin.js', find there 'custom_publish_handle' label.
+            jQuery('button.components-button.editor-post-publish-button').removeAttr('aria-disabled');
         }
 
         _this2.state = { comments: [] };
