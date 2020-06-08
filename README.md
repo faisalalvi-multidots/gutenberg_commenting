@@ -9,7 +9,6 @@ Welcome to the Gutenberg's Commenting Feature Plugin's repository. This plugin i
 
 Current trends say that 35% of the web uses WordPress, from individual blog posts to big news sites online. While preparing any blog or news online, those people thought of in their mind to verify their content with friends, colleagues, subject experts before posting it. s/he wants to invite and collaborate them in blog posts for review/validation. But, Those people have not any handy feature to give feedback/suggestions right away on those blogs within the WordPress platform.
 
-
 So, we are happy to announce that we have launched the pre-alpha/Alpha/Beta version of Comment & Markup features. It is available publicly for the community to contribute.
 
 ## The Inspiration - 1

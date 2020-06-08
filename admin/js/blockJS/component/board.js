@@ -11,8 +11,7 @@ export default class Board extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.removeComment = this.removeComment.bind(this);
         this.addNewComment = this.addNewComment.bind(this);
-        this.removeSuggestion = this.removeSuggestion.bind(this);
-        this.acceptSuggestion = this.acceptSuggestion.bind(this);
+        this.enableUpdateBtn = this.enableUpdateBtn.bind(this);
         const currentPostID = wp.data.select('core/editor').getCurrentPostId();
         const postSelections = [];
         let selectedText;
@@ -66,19 +65,20 @@ export default class Board extends React.Component {
             });
         }
 
-        // On load fetching comments.
-        if (1 === this.props.onLoadFetch) {
-
-            // Removing disabled attribute from "Update" button on load.
-            // Doing so to handle the process even when content is not changed but comments are modified/added.
-            // The custom function is added in 'commenting_block-admin.js', find there 'custom_publish_handle' label.
-            jQuery('button.components-button.editor-post-publish-button').removeAttr('aria-disabled');
-        }
-
         this.state = {comments: []};
     }
 
+    enableUpdateBtn() {
+        // Removing disabled attribute from "Update" button on load.
+        // Doing so to handle the process even when content is not changed but comments are modified/added.
+        // The custom function is added in 'commenting_block-admin.js', find there 'custom_publish_handle' label.
+        jQuery('button.components-button.editor-post-publish-button').removeAttr('aria-disabled');
+    }
+
     removeComment(idx, cTimestamp, elID) {
+
+        this.enableUpdateBtn();
+
         var arr = this.state.comments;
 
         arr.splice(idx, 1);
@@ -99,6 +99,9 @@ export default class Board extends React.Component {
     }
 
     updateComment(newText, idx, cTimestamp, dateTime, metaID) {
+
+        this.enableUpdateBtn();
+
         var arr = this.state.comments;
         var userID = wp.data.select("core").getCurrentUser().id;
         var userName = wp.data.select("core").getCurrentUser().name;
@@ -132,6 +135,9 @@ export default class Board extends React.Component {
     }
 
     addNewComment(event) {
+
+        this.enableUpdateBtn();
+
         event.preventDefault();
 
         const {datatext} = this.props;
@@ -197,46 +203,6 @@ export default class Board extends React.Component {
 
         } else alert("Please write a comment to share!")
 
-    }
-
-    removeSuggestion(event) {
-        if (confirm('Are you sure you want to delete this thread ?')) {
-            var elID = jQuery(event.currentTarget).closest('.cls-board-outer');
-            elID = elID[0].id;
-            var elIDRemove = elID;
-            const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-            alert(elID);
-            const {lastVal, onChanged} = this.props;
-
-            onChanged(removeFormat(lastVal, name2));
-        }
-    }
-
-    acceptSuggestion(event) {
-        if (confirm('Are you sure you want to delete this thread ?')) {
-            var elID = jQuery(event.currentTarget).closest('.cls-board-outer');
-            elID = elID[0].id;
-            var elIDRemove = elID;
-            const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-            const {value, onChange} = this.props;
-            elID = '_' + elID;
-
-            var data = {
-                'action': 'resolve_thread',
-                'currentPostID': CurrentPostID,
-                'metaId': elID
-            };
-            // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-            jQuery.post(ajaxurl, data, function (response) {
-                if (response == true) {
-                    jQuery('div#' + elIDRemove).remove();
-                } else {
-                    alert('wrong');
-                }
-            });
-            const {lastVal, onChanged} = this.props;
-            onChanged(removeFormat(lastVal, name2));
-        }
     }
 
     displayComments(text, i) {

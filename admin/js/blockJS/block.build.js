@@ -551,8 +551,7 @@ var Board = function (_React$Component) {
         _this2.updateComment = _this2.updateComment.bind(_this2);
         _this2.removeComment = _this2.removeComment.bind(_this2);
         _this2.addNewComment = _this2.addNewComment.bind(_this2);
-        _this2.removeSuggestion = _this2.removeSuggestion.bind(_this2);
-        _this2.acceptSuggestion = _this2.acceptSuggestion.bind(_this2);
+        _this2.enableUpdateBtn = _this2.enableUpdateBtn.bind(_this2);
         var currentPostID = wp.data.select('core/editor').getCurrentPostId();
         var postSelections = [];
         var selectedText = void 0;
@@ -608,22 +607,24 @@ var Board = function (_React$Component) {
             });
         }
 
-        // On load fetching comments.
-        if (1 === _this2.props.onLoadFetch) {
-
-            // Removing disabled attribute from "Update" button on load.
-            // Doing so to handle the process even when content is not changed but comments are modified/added.
-            // The custom function is added in 'commenting_block-admin.js', find there 'custom_publish_handle' label.
-            jQuery('button.components-button.editor-post-publish-button').removeAttr('aria-disabled');
-        }
-
         _this2.state = { comments: [] };
         return _this2;
     }
 
     _createClass(Board, [{
+        key: 'enableUpdateBtn',
+        value: function enableUpdateBtn() {
+            // Removing disabled attribute from "Update" button on load.
+            // Doing so to handle the process even when content is not changed but comments are modified/added.
+            // The custom function is added in 'commenting_block-admin.js', find there 'custom_publish_handle' label.
+            jQuery('button.components-button.editor-post-publish-button').removeAttr('aria-disabled');
+        }
+    }, {
         key: 'removeComment',
         value: function removeComment(idx, cTimestamp, elID) {
+
+            this.enableUpdateBtn();
+
             var arr = this.state.comments;
 
             arr.splice(idx, 1);
@@ -646,6 +647,9 @@ var Board = function (_React$Component) {
     }, {
         key: 'updateComment',
         value: function updateComment(newText, idx, cTimestamp, dateTime, metaID) {
+
+            this.enableUpdateBtn();
+
             var arr = this.state.comments;
             var userID = wp.data.select("core").getCurrentUser().id;
             var userName = wp.data.select("core").getCurrentUser().name;
@@ -679,6 +683,9 @@ var Board = function (_React$Component) {
     }, {
         key: 'addNewComment',
         value: function addNewComment(event) {
+
+            this.enableUpdateBtn();
+
             event.preventDefault();
 
             var datatext = this.props.datatext;
@@ -744,71 +751,20 @@ var Board = function (_React$Component) {
             } else alert("Please write a comment to share!");
         }
     }, {
-        key: 'removeSuggestion',
-        value: function removeSuggestion(event) {
-            if (confirm('Are you sure you want to delete this thread ?')) {
-                var elID = jQuery(event.currentTarget).closest('.cls-board-outer');
-                elID = elID[0].id;
-                var elIDRemove = elID;
-                var CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-                alert(elID);
-                var _props2 = this.props,
-                    lastVal = _props2.lastVal,
-                    onChanged = _props2.onChanged;
-
-
-                onChanged(removeFormat(lastVal, name2));
-            }
-        }
-    }, {
-        key: 'acceptSuggestion',
-        value: function acceptSuggestion(event) {
-            if (confirm('Are you sure you want to delete this thread ?')) {
-                var elID = jQuery(event.currentTarget).closest('.cls-board-outer');
-                elID = elID[0].id;
-                var elIDRemove = elID;
-                var CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-                var _props3 = this.props,
-                    value = _props3.value,
-                    onChange = _props3.onChange;
-
-                elID = '_' + elID;
-
-                var data = {
-                    'action': 'resolve_thread',
-                    'currentPostID': CurrentPostID,
-                    'metaId': elID
-                };
-                // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-                jQuery.post(ajaxurl, data, function (response) {
-                    if (response == true) {
-                        jQuery('div#' + elIDRemove).remove();
-                    } else {
-                        alert('wrong');
-                    }
-                });
-                var _props4 = this.props,
-                    lastVal = _props4.lastVal,
-                    onChanged = _props4.onChanged;
-
-                onChanged(removeFormat(lastVal, name2));
-            }
-        }
-    }, {
         key: 'displayComments',
         value: function displayComments(text, i) {
-            var _props5 = this.props,
-                isActive = _props5.isActive,
-                inputValue = _props5.inputValue,
-                myval2 = _props5.myval2,
-                value = _props5.value; /*onChange*/
+            var _props2 = this.props,
+                isActive = _props2.isActive,
+                inputValue = _props2.inputValue,
+                myval2 = _props2.myval2,
+                value = _props2.value; /*onChange*/
 
-            var _props6 = this.props,
-                lastVal = _props6.lastVal,
-                onChanged = _props6.onChanged,
-                selectedText = _props6.selectedText,
-                suserProfile = _props6.suserProfile,
-                suserName = _props6.suserName;
+            var _props3 = this.props,
+                lastVal = _props3.lastVal,
+                onChanged = _props3.onChanged,
+                selectedText = _props3.selectedText,
+                suserProfile = _props3.suserProfile,
+                suserName = _props3.suserName;
 
 
             var username = void 0,
@@ -867,14 +823,14 @@ var Board = function (_React$Component) {
         value: function render() {
             var _this3 = this;
 
-            var _props7 = this.props,
-                isActive = _props7.isActive,
-                inputValue = _props7.inputValue,
-                onChange = _props7.onChange,
-                value = _props7.value,
-                myval2 = _props7.myval2,
-                selectedText = _props7.selectedText,
-                datatext = _props7.datatext;
+            var _props4 = this.props,
+                isActive = _props4.isActive,
+                inputValue = _props4.inputValue,
+                onChange = _props4.onChange,
+                value = _props4.value,
+                myval2 = _props4.myval2,
+                selectedText = _props4.selectedText,
+                datatext = _props4.datatext;
 
             var buttonText = 1 === this.hasComments && 1 !== this.props.freshBoard ? 'Reply' : 'Comment';
 
