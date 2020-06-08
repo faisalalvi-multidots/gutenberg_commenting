@@ -5,7 +5,7 @@
 > **⚠️ Note:** This is a beta version. Use it for contributions only.
 
 
-Welcome to the Gutenberg's Commenting Feature Plugin's repository. This plugin is useful to enable commenting featured like Google Document within WordPRess' Gutenberg Block Editor!
+Welcome to the Gutenberg's Commenting Feature Plugin's repository. This plugin is useful to enable commenting featured like Google Document within WordPress' Gutenberg Block Editor!
 
 Current trends say that 35% of the web uses WordPress, from individual blog posts to big news sites online. While preparing any blog or news online, those people thought of in their mind to verify their content with friends, colleagues, subject experts before posting it. s/he wants to invite and collaborate them in blog posts for review/validation. But, Those people have not any handy feature to give feedback/suggestions right away on those blogs within the WordPress platform.
 
@@ -13,7 +13,7 @@ So, we are happy to announce that we have launched the pre-alpha/Alpha/Beta vers
 
 ## The Inspiration - 1
  
- One day our team is working on the client’s project. There are 2 developers working/Editing on the same post and WordPress default behavior “Take Over” control come to their screens. At that time, we think about if the same post will be managed by more then one person than it would be a great idea. We identify that we should introduce collaborative mode on the WordPress post/page. We have also studied and done research on the internet. There are a couple of folks and companies in the WordPress community who are contributing to this area. We have started a journey to build this feature and think of giving back to the community.
+ One day our team is working on the client’s project. There are 2 developers working/Editing on the same post and WordPress default behavior “Take Over” control come to their screens. At that time, we think about if the same post will be managed by more than one person than it would be a great idea. We identify that we should introduce a collaborative mode on the WordPress post/page. We have also studied and done research on the internet. There are a couple of folks and companies in the WordPress community who are contributing to this area. We have started a journey to build this feature and think of giving back to the community.
  
 ## The Inspiration - 2 
 
@@ -25,7 +25,7 @@ It is a great idea to switch to Gutenberg Editor. But, when you switch to Gutenb
 
 ## Solution
 
-We have done research with the client and identify their specific need. Based on that we came with a solution where we will provide comments and markups with a native Gutenberg editor in WordPress Platform. Here, every user will provide comments and markup on any Gutenberg block. Below are the steps to take early advantage of this feature and we welcome the community people to contribute as well.
+We have done research with the client and identify their specific need. Based on that we came with a solution where we will provide comments and markups with a native Gutenberg editor in WordPress Platform. Here, every user will provide comments and markup on any Gutenberg block. Below are the steps to take early advantage of this feature, and we welcome the community people to contribute as well.
 
 ## How to Use
 
@@ -59,7 +59,7 @@ We are planning to enhance the comment features with an optimized version in the
 2. Asynchronous for comment for each other users on the same post/page.
 3. We will update this section based on the final review.
 
-This is a GitHub link and we will add additional information here.
+This is a GitHub link, and we will add additional information here.
 
 We hope the “Comment” feature will be helpful to mange your editorial flow within Gutenberg  blocks. We highly appreciate Bug reports and any other contributions. Please refer to this guide for more information about how to get involved.
 
@@ -68,11 +68,11 @@ We hope the “Comment” feature will be helpful to mange your editorial flow w
 All type of contributions from are most welcome.
 
 - Fork the repository to your account (you will get this option at top right of this page);
-- Create branch into your fork repository like `development` if it exists else from master.
-- Take Clone of this fork repository to your local system.
+- Create a branch into your fork repository like `development` if it exists else from master.
+- Take a clone of the fork repository to your local system.
 - Write your clean code and test with PHPCS with `WordpressVIPMinimum` coding standard.
 - Commit Your code from your local system. 
-- And Finally, click `Pull Request` from your fork repository.
+- Finally, click `Pull Request` from your fork repository.
 - This [github article](https://help.github.com/en/articles/creating-a-pull-request-from-a-fork) will helpful for how to submit pull request from the fork.
 
 ## Support 
