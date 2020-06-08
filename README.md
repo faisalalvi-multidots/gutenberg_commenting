@@ -12,8 +12,6 @@ Current trends say that 35% of the web uses WordPress, from individual blog post
 
 So, we are happy to announce that we have launched the pre-alpha/Alpha/Beta version of Comment & Markup features. It is available publicly for the community to contribute.
 
-## Key Features
-
 ## The Inspiration - 1
  
  One day our team is working on the client’s project. There are 2 developers working/Editing on the same post and WordPress default behavior “Take Over” control come to their screens. At that time, we think about if the same post will be managed by more then one person than it would be a great idea. We identify that we should introduce collaborative mode on the WordPress post/page. We have also studied and done research on the internet. There are a couple of folks and companies in the WordPress community who are contributing to this area. We have started a journey to build this feature and think of giving back to the community.
