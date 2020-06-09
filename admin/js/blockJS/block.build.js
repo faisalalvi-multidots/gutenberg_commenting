@@ -110,41 +110,40 @@ function fetchComments() {
         if (0 === span_count) {
             jQuery('#md-span-comments').removeClass('comments-loader');
             jQuery('#loader_style').remove();
+        } else {
+            jQuery('.wp-block mdspan').each(function () {
+
+                selectedText = jQuery(this).attr('datatext');
+
+                if (jQuery('#' + selectedText).length === 0) {
+
+                    var newNode = document.createElement('div');
+                    newNode.setAttribute("id", selectedText);
+                    newNode.setAttribute("class", "cls-board-outer is_active");
+
+                    var referenceNode = document.getElementById('md-span-comments');
+                    referenceNode.appendChild(newNode);
+
+                    ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__component_board__["a" /* default */], { datatext: selectedText, onLoadFetch: 1 }), document.getElementById(selectedText));
+                }
+                allThreads.push(selectedText);
+            });
+
+            var loadAttempts = 0;
+            var loadComments = setInterval(function () {
+                loadAttempts++;
+                if (1 <= jQuery('.commentContainer').length) {
+                    clearInterval(loadComments);
+                    jQuery('#loader_style').remove();
+                    jQuery('#md-span-comments').removeClass('comments-loader');
+                }
+                if (loadAttempts >= 10) {
+                    clearInterval(loadComments);
+                    jQuery('#loader_style').remove();
+                    jQuery('#md-span-comments').removeClass('comments-loader');
+                }
+            }, 1000);
         }
-
-        jQuery('.wp-block mdspan').each(function () {
-
-            selectedText = jQuery(this).attr('datatext');
-
-            if (jQuery('#' + selectedText).length === 0) {
-
-                var newNode = document.createElement('div');
-                newNode.setAttribute("id", selectedText);
-                newNode.setAttribute("class", "cls-board-outer is_active");
-
-                var referenceNode = document.getElementById('md-span-comments');
-                referenceNode.appendChild(newNode);
-
-                ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__component_board__["a" /* default */], { datatext: selectedText, onLoadFetch: 1 }), document.getElementById(selectedText));
-            }
-            allThreads.push(selectedText);
-        });
-
-        var loadAttempts = 0;
-        var loadComments = setInterval(function () {
-            loadAttempts++;
-            if (span_count <= jQuery('.commentContainer').length) {
-                clearInterval(loadComments);
-                //setTimeout(function () {
-                jQuery('#md-span-comments').removeClass('comments-loader');
-                jQuery('#loader_style').remove();
-                //}, 1000);
-            }
-            if (loadAttempts >= 10) {
-                clearInterval(loadComments);
-                jQuery('#loader_style').remove();
-            }
-        }, 1000);
 
         //jQuery('.cls-board-outer').addClass('is_active');
 
