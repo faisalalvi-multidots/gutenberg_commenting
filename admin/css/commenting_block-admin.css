@@ -501,8 +501,9 @@ mdspan[data-rich-text-format-boundary="true"] {
 }
 
 #md-span-comments.comments-loader {
-    opacity: 0;
+    /*opacity: 0;*/
 }
+#md-span-comments.comments-loader:before {content: 'Loading comments...';font-size: 10px;}
 
 div.charMap--container {
     margin: 2px;

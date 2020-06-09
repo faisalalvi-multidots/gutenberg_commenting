@@ -19,6 +19,13 @@ function fetchComments() {
         let txtselectedText;
         var allThreads = [];
 
+        // If no comment tag exist, remove the loader and temp style tag immediately.
+        const span_count = jQuery('.wp-block mdspan').length;
+        if( 0 === span_count ) {
+            jQuery('#md-span-comments').removeClass('comments-loader');
+            jQuery('#loader_style').remove();
+        }
+
         jQuery('.wp-block mdspan').each(function () {
 
             selectedText = jQuery(this).attr('datatext');
@@ -43,12 +50,12 @@ function fetchComments() {
         var loadAttempts = 0;
         const loadComments = setInterval(function () {
             loadAttempts++;
-            if (0 !== jQuery('.board').length) {
-                setTimeout(function () {
+            if (span_count <= jQuery('.commentContainer').length) {
+                clearInterval(loadComments);
+                //setTimeout(function () {
                     jQuery('#md-span-comments').removeClass('comments-loader');
-                    clearInterval(loadComments);
                     jQuery('#loader_style').remove();
-                }, 1000);
+                //}, 1000);
             }
             if (loadAttempts >= 10) {
                 clearInterval(loadComments);
@@ -95,9 +102,9 @@ jQuery(window).load(function () {
 
             setTimeout(function () {
                 // Sync popups with highlighted texts.
-                jQuery('.wp-block mdspan').each(function () {
+                $('.wp-block mdspan').each(function () {
                     var selectedText = jQuery(this).attr('datatext');
-                    if (jQuery('#' + selectedText).length === 0) {
+                    if ($('#' + selectedText).length === 0) {
                         createBoard(selectedText, 'value', 'onChange');
                     }
                 });
@@ -139,6 +146,7 @@ function bring_back_comments() {
             $.each(response.comments, function (el, timestamps) {
                 $.each(timestamps, function (el, t) {
                     $('#' + t).removeClass('publish').addClass('reverted_back added');
+                    $('head').append('<style>[id="'+t+'"]{display: block !important}</style>');
                 });
             });
         }
@@ -147,7 +155,6 @@ function bring_back_comments() {
             $.each(response.deleted, function (el, timestamps) {
                 $.each(timestamps, function (el, t) {
                     $('#' + t).remove();
-                    //$('#' + t).removeClass('publish').addClass('reverted_back deleted');
                 });
             });
         }

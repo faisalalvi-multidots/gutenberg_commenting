@@ -29,7 +29,7 @@
      */
 
     // Add temporary style tag to hide resolved tag color on load.
-    $('html').prepend('<style id="loader_style">body mdspan{background: transparent !important;}</style>');
+    $('html').prepend('<style id="loader_style">body mdspan{background: transparent !important;}.components-editor-notices__dismissible{display: none !important;</style>');
 
     // Ready.
     $(document).ready(function () {
