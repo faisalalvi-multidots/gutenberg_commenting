@@ -53,7 +53,8 @@ class Commenting_block_Admin {
 		$this->plugin_name = $plugin_name;
 		$this->version     = $version;
 
-		add_action( 'post_updated', array( $this, 'mdgcf_post_status_changes' ), 10, 3 );
+		// Disabled this, handling it with jQuery.
+		//add_action( 'post_updated', array( $this, 'mdgcf_post_status_changes' ), 10, 3 );
 	}
 
 	public function cf_get_user() {
@@ -336,7 +337,7 @@ class Commenting_block_Admin {
 		if ( isset( $current_drafts['comments'] ) && 0 !== count( $current_drafts['comments'] ) ) {
 			$current_drafts['comments'][ $metaId ][] = $timestamp;
 		} else {
-			$current_drafts['comments'] = array();
+			$current_drafts = array();
 
 			$current_drafts['comments'][ $metaId ][] = $timestamp;
 		}

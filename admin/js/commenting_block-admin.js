@@ -91,7 +91,7 @@
         $(document).on('click', 'button.components-button.editor-post-publish-button', function () {
 
             const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-            const postContent = wp.data.select('core/editor').getCurrentPost().content;
+            const postContent = wp.data.select('core/editor').getEditedPostContent()
 
             var data = {
                 'action': 'cf_update_click',
