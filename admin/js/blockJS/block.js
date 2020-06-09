@@ -133,8 +133,7 @@ function bring_back_comments() {
         if (response.resolved) {
             $.each(response.resolved, function (k, el) {
                 el = el.replace('_', '');
-                //$('#' + el).addClass('reverted_back resolved');
-                $('#' + el).hide();
+                $('#' + el).addClass('reverted_back resolved');
                 // Hide popups if their tags don't exist.
                 if (0 === $('[datatext="' + el + '"]').length) {
                     $('#' + el).hide();
