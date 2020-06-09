@@ -133,7 +133,8 @@ function bring_back_comments() {
         if (response.resolved) {
             $.each(response.resolved, function (k, el) {
                 el = el.replace('_', '');
-                $('#' + el).addClass('reverted_back resolved');
+                //$('#' + el).addClass('reverted_back resolved');
+                $('#' + el).hide();
                 // Hide popups if their tags don't exist.
                 if (0 === $('[datatext="' + el + '"]').length) {
                     $('#' + el).hide();
@@ -145,6 +146,7 @@ function bring_back_comments() {
             $.each(response.comments, function (el, timestamps) {
                 $.each(timestamps, function (el, t) {
                     $('#' + t).removeClass('publish').addClass('reverted_back added');
+                    /*taking extra care to display new threads*/
                     $('head').append('<style>[id="'+t+'"]{display: block !important}</style>');
                 });
             });
