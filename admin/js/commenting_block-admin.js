@@ -28,6 +28,9 @@
      * practising this, we should strive to set a better example in our own work.
      */
 
+    // Add temporary style tag to hide resolved tag color on load.
+    $('html').prepend('<style id="loader_style">body mdspan{background: transparent !important;}</style>');
+
     // Ready.
     $(document).ready(function () {
 

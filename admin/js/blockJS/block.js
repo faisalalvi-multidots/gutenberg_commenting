@@ -43,15 +43,20 @@ function fetchComments() {
         var loadAttempts = 0;
         const loadComments = setInterval(function () {
             loadAttempts++;
-            if (0 !== jQuery('.cls-board-outer').length) {
-                jQuery('#md-span-comments').removeClass('comments-loader');
+            if (0 !== jQuery('.board').length) {
+                setTimeout(function () {
+                    jQuery('#md-span-comments').removeClass('comments-loader');
+                    clearInterval(loadComments);
+                    jQuery('#loader_style').remove();
+                }, 1000);
             }
-            if (loadComments <= 10) {
+            if (loadAttempts >= 10) {
                 clearInterval(loadComments);
+                jQuery('#loader_style').remove();
             }
-        }, 500);
+        }, 1000);
 
-        jQuery('.cls-board-outer').addClass('is_active');
+        //jQuery('.cls-board-outer').addClass('is_active');
 
         // Reset Draft Comments Data.
         const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
