@@ -34,6 +34,11 @@
     // Ready.
     $(document).ready(function () {
 
+        // Focus comment popup on click.
+        $(document).on('click', '.cls-board-outer', function () {
+            $(this).addClass('focus');
+        });
+
         $(document).on('click', '.user-comented-on', function (e) {
             $('#custom-history-popup, #history-toggle').toggleClass('active');
             e.preventDefault();
