@@ -510,7 +510,7 @@ class Commenting_block_Admin {
 		// Update Current Drafts.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
 		$current_drafts = maybe_unserialize( $current_drafts );
-
+		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
 		$current_drafts['edited'][ $metaId ][] = $old_timestamp;
 
 		update_post_meta( $current_post_id, 'current_drafts', $current_drafts );
@@ -527,7 +527,7 @@ class Commenting_block_Admin {
 		// Update Current Drafts.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
 		$current_drafts = maybe_unserialize( $current_drafts );
-
+		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
 		$current_drafts['deleted'][ $metaId ][] = $timestamp;
 
 		update_post_meta( $current_post_id, 'current_drafts', $current_drafts );
@@ -562,6 +562,7 @@ class Commenting_block_Admin {
 		// Move previous drafts to Permanent Draft Stack.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
 		$current_drafts = maybe_unserialize( $current_drafts );
+		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
 
 		$permanent_drafts = get_post_meta( $current_post_id, 'permanent_drafts', true );
 		$permanent_drafts = maybe_unserialize( $permanent_drafts );
@@ -601,7 +602,7 @@ class Commenting_block_Admin {
 		// Move previous drafts to Permanent Draft Stack.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
 		$current_drafts = maybe_unserialize( $current_drafts );
-
+		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
 		$permanent_drafts = get_post_meta( $current_post_id, 'permanent_drafts', true );
 		$permanent_drafts = maybe_unserialize( $permanent_drafts );
 
@@ -640,10 +641,11 @@ class Commenting_block_Admin {
 		// Update Current Drafts.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
 		$current_drafts = maybe_unserialize( $current_drafts );
+		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
 		if ( isset( $current_drafts['resolved'] ) && 0 !== count( $current_drafts['resolved'] ) ) {
 			$current_drafts['resolved'][] = $metaId;
 		} else {
-			$current_drafts['resolved'] = array();
+			$current_drafts = array();
 
 			$current_drafts['resolved'][] = $metaId;
 		}
