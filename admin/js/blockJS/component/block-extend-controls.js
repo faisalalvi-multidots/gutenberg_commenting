@@ -152,6 +152,14 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                         diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
                         diff[v+1][1] = missDelLastTag + diff[v+1][1];
                         ignoreCleanUp = true;
+                      } else if ( null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag ) {
+                        let diffNextOfNext = diff[v+2] ? diff[v+2][1] : '';
+                        if ( 1 === diffNextCloseTag.length && '' !== diffNextOfNext ) {
+                          let matchDelTag = diff[v][1].match(/<del id=".*">$/);
+                          diff[v][1] = diff[v][1].substring(0,diff[v][1].lastIndexOf(matchDelTag));
+                          diff[v+2][1] = matchDelTag + diff[v+2][1];
+                          ignoreCleanUp = true;
+                        }
                       }
 
                       if ( DiffMatchPatch.DIFF_EQUAL !== operation ) {

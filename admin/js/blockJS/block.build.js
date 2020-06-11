@@ -1491,6 +1491,14 @@ var displayInitialSuggestion = true;
                           diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
                           diff[v + 1][1] = missDelLastTag + diff[v + 1][1];
                           ignoreCleanUp = true;
+                        } else if (null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag) {
+                          var diffNextOfNext = diff[v + 2] ? diff[v + 2][1] : '';
+                          if (1 === diffNextCloseTag.length && '' !== diffNextOfNext) {
+                            var matchDelTag = diff[v][1].match(/<del id=".*">$/);
+                            diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(matchDelTag));
+                            diff[v + 2][1] = matchDelTag + diff[v + 2][1];
+                            ignoreCleanUp = true;
+                          }
                         }
 
                         if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
