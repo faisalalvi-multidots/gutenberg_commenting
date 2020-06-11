@@ -168,7 +168,7 @@ class Commenting_block {
 		$this->loader->add_action( 'wp_ajax_reset_drafts_meta', $plugin_admin,'reset_drafts_meta' );
 		$this->loader->add_action( 'wp_ajax_merge_draft_stacks', $plugin_admin,'merge_draft_stacks' );
 		$this->loader->add_action( 'rest_api_init', $plugin_admin, 'career_data_by_select_route' );
-
+		$this->loader->add_action( 'init', $plugin_admin, 'sb_register_post_meta_field' );
 	}
 
 	/**

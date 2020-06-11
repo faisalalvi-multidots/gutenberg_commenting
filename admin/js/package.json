@@ -26,6 +26,7 @@
     "@wordpress/keycodes": "^2.7.0",
     "@wordpress/url": "^2.8.2",
     "classnames": "^2.2.6",
+    "diff-match-patch": "^1.0.5",
     "file-loader": "^5.0.2",
     "lodash": "^4.17.15",
     "lodash.assign": "^4.2.0",
