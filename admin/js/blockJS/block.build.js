@@ -1013,16 +1013,17 @@ var Comment = function (_React$Component) {
                     lastVal = _props2.lastVal,
                     onChanged = _props2.onChanged;
 
+                //if (null === lastVal || undefined === onChanged) {
+
+                jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
+
                 var removedComments = jQuery('body').attr('remove-comment');
                 removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
                 jQuery('body').attr('remove-comment', removedComments);
                 jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
-
-                if (null === onChanged || undefined === onChanged) {
-                    jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
-                } else {
+                /*} else {
                     onChanged(removeFormat(lastVal, name));
-                }
+                }*/
             }
         }
     }, {

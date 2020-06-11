@@ -66,16 +66,17 @@ export default class Comment extends React.Component {
             let name = 'multidots/comment';
 
             const {lastVal, onChanged} = this.props;
-            let removedComments = jQuery('body').attr('remove-comment');
-            removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
-            jQuery('body').attr('remove-comment', removedComments);
-            jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
 
-            if (null === onChanged || undefined === onChanged) {
+            //if (null === lastVal || undefined === onChanged) {
                 jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
-            } else {
+
+                let removedComments = jQuery('body').attr('remove-comment');
+                removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
+                jQuery('body').attr('remove-comment', removedComments);
+                jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
+            /*} else {
                 onChanged(removeFormat(lastVal, name));
-            }
+            }*/
         }
     }
 

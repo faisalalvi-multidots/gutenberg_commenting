@@ -334,10 +334,11 @@ class Commenting_block_Admin {
 		// Update Current Drafts.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
 		$current_drafts = maybe_unserialize( $current_drafts );
+		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
 		if ( isset( $current_drafts['comments'] ) && 0 !== count( $current_drafts['comments'] ) ) {
 			$current_drafts['comments'][ $metaId ][] = $timestamp;
 		} else {
-			$current_drafts = array();
+			//$current_drafts = array();
 
 			$current_drafts['comments'][ $metaId ][] = $timestamp;
 		}
@@ -460,7 +461,7 @@ class Commenting_block_Admin {
 					if ( $limit < strlen( $commented_on_text ) ) {
 						$commented_on_text = substr( $commented_on_text, 0, $limit ) . '...';
 					}
-
+					$c['thread'] = isset( $c['thread'] ) ? $c['thread'] : '';
 					$count ++;
 
 					$html .= "<div class='user-data-row'>";
@@ -645,7 +646,7 @@ class Commenting_block_Admin {
 		if ( isset( $current_drafts['resolved'] ) && 0 !== count( $current_drafts['resolved'] ) ) {
 			$current_drafts['resolved'][] = $metaId;
 		} else {
-			$current_drafts = array();
+			//$current_drafts = array();
 
 			$current_drafts['resolved'][] = $metaId;
 		}
