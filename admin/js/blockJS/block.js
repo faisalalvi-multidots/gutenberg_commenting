@@ -1,6 +1,7 @@
 import Board from './component/board';
 
 const {__} = wp.i18n;
+const {addFilter} = wp.hooks;
 const {Fragment, Component} = wp.element;
 const {toggleFormat} = wp.richText;
 const {RichTextToolbarButton} = wp.blockEditor;
@@ -344,7 +345,7 @@ const mdComment = {
                 // If the text removed, remove comment from db and its popup.
                 // new_logic ->
                 // just hide these popups and only display on CTRLz
-                jQuery('.cls-board-outer:not(.has_text)').each(function () {
+                jQuery('#md-span-comments .cls-board-outer:not(.has_text)').each(function () {
                     jQuery(this).hide();
                 });
 
@@ -449,3 +450,22 @@ const mdComment = {
     }),
 };
 registerFormatType(name, mdComment);
+
+import './component/suggestion-sidebar';
+import withBlockExtendControls from './component/block-extend-controls';
+
+addFilter( 'editor.BlockEdit', 'md/block-extend-controls', withBlockExtendControls );
+addFilter( 'blocks.registerBlockType', 'md/suggestionBlockAttributes', addCustomAttributes );
+
+function addCustomAttributes( settings, name ) {
+
+  if ( 'core/paragraph' === name ) {
+    if ( settings.attributes ) {
+      settings.attributes.oldClientId = {
+        type: 'string',
+        default: ''
+      };
+    }
+  }
+  return settings;
+}
