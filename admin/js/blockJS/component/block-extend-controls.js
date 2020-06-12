@@ -35,7 +35,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
         this.addEvents();
       }
 
-      if ( 0 < suggestionHistory.length && '' !== oldClientId && displayInitialSuggestion ) {
+      if ( undefined !== suggestionHistory && 0 < suggestionHistory.length && '' !== oldClientId && displayInitialSuggestion ) {
         let displayHistory = JSON.parse(suggestionHistory);
         if ( undefined !== displayHistory[oldClientId] && -1 === loadInitialSuggestion.indexOf( oldClientId ) ) {
           loadInitialSuggestion.push(oldClientId);
@@ -233,7 +233,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                       let time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
                       let dateTime = date + ' ' + time;
 
-                      switch (op) {
+                      switch (opts.com  ) {
                         case DiffMatchPatch.DIFF_INSERT:
                           if ( ! isFormating && tagFound ) {
                             isFormating = true;

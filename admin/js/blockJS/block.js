@@ -6,6 +6,48 @@ const {Fragment, Component} = wp.element;
 const {toggleFormat} = wp.richText;
 const {RichTextToolbarButton} = wp.blockEditor;
 const {registerFormatType, applyFormat, removeFormat} = wp.richText;
+const $ = jQuery;
+
+// Window Load functions.
+$(window).load(function () {
+
+    // Add history button.
+    const customHistoryButton = '<div class="components-dropdown custom-buttons"><button type="button" aria-expanded="false" class="components-button has-icon" aria-label="Tools"><span class="dashicons dashicons-text-page" id="history-toggle"></span></button></div>';
+    $('.edit-post-header-toolbar').append(customHistoryButton);
+
+    // Add comments toggle button.
+    const customCommentsToggleButton = '<div class="components-dropdown custom-buttons"><button type="button" aria-expanded="false" class="components-button has-icon" aria-label="Tools"><span class="dashicons dashicons-admin-comments" id="comments-toggle"></span></button></div>';
+    $('.edit-post-header-toolbar').append(customCommentsToggleButton);
+
+    const customHistoryPopup = '<div id="custom-history-popup"></div>';
+    $('.edit-post-layout').append(customHistoryPopup);
+
+    fetchComments();
+
+    $(document).on('click', '.components-notice__action', function () {
+
+        if ('View the autosave' === $(this).text()) {
+            bring_back_comments();
+        }
+        if ('Restore the backup' === $(this).text()) {
+
+            setTimeout(function () {
+                // Sync popups with highlighted texts.
+                $('.wp-block mdspan').each(function () {
+                    var selectedText = $(this).attr('datatext');
+                    if ($('#' + selectedText).length === 0) {
+                        createBoard(selectedText, 'value', 'onChange');
+                    }
+                });
+
+                bring_back_comments();
+            }, 500);
+
+        }
+
+    });
+
+});
 
 function fetchComments() {
 
@@ -21,16 +63,16 @@ function fetchComments() {
         var allThreads = [];
 
         // If no comment tag exist, remove the loader and temp style tag immediately.
-        const span_count = jQuery('.wp-block mdspan').length;
+        const span_count = $('.wp-block mdspan').length;
         if( 0 === span_count ) {
-            jQuery('#md-span-comments').removeClass('comments-loader');
-            jQuery('#loader_style').remove();
+            $('#md-span-comments').removeClass('comments-loader');
+            $('#loader_style').remove();
         } else {
-            jQuery('.wp-block mdspan').each(function () {
+            $('.wp-block mdspan').each(function () {
 
-                selectedText = jQuery(this).attr('datatext');
+                selectedText = $(this).attr('datatext');
 
-                if (jQuery('#' + selectedText).length === 0) {
+                if ($('#' + selectedText).length === 0) {
 
                     var newNode = document.createElement('div');
                     newNode.setAttribute("id", selectedText);
@@ -50,81 +92,38 @@ function fetchComments() {
             var loadAttempts = 0;
             const loadComments = setInterval(function () {
                 loadAttempts++;
-                if (1 <= jQuery('.commentContainer').length) {
+                if (1 <= $('.commentContainer').length) {
                     clearInterval(loadComments);
-                    jQuery('#loader_style').remove();
-                    jQuery('#md-span-comments').removeClass('comments-loader');
+                    $('#loader_style').remove();
+                    $('#md-span-comments').removeClass('comments-loader');
                 }
                 if (loadAttempts >= 10) {
                     clearInterval(loadComments);
-                    jQuery('#loader_style').remove();
-                    jQuery('#md-span-comments').removeClass('comments-loader');
+                    $('#loader_style').remove();
+                    $('#md-span-comments').removeClass('comments-loader');
                 }
             }, 1000);
         }
 
-        //jQuery('.cls-board-outer').addClass('is_active');
+        //$('.cls-board-outer').addClass('is_active');
 
         // Reset Draft Comments Data.
         const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
         var data = {
-            'action': 'reset_drafts_meta',
+            'action': 'cf_reset_drafts_meta',
             'currentPostID': CurrentPostID,
         };
-        jQuery.post(ajaxurl, data, function (response) {
+        $.post(ajaxurl, data, function (response) {
         });
     }
 }
 
-// Load.
-jQuery(window).load(function () {
-
-    // Add history button.
-    const customHistoryButton = '<div class="components-dropdown custom-buttons"><button type="button" aria-expanded="false" class="components-button has-icon" aria-label="Tools"><span class="dashicons dashicons-text-page" id="history-toggle"></span></button></div>';
-    jQuery('.edit-post-header-toolbar').append(customHistoryButton);
-
-    // Add comments toggle button.
-    const customCommentsToggleButton = '<div class="components-dropdown custom-buttons"><button type="button" aria-expanded="false" class="components-button has-icon" aria-label="Tools"><span class="dashicons dashicons-admin-comments" id="comments-toggle"></span></button></div>';
-    jQuery('.edit-post-header-toolbar').append(customCommentsToggleButton);
-
-    const customHistoryPopup = '<div id="custom-history-popup"></div>';
-    jQuery('.edit-post-layout').append(customHistoryPopup);
-
-    fetchComments();
-
-    const $ = jQuery;
-    $(document).on('click', '.components-notice__action', function () {
-
-        if ('View the autosave' === $(this).text()) {
-            bring_back_comments();
-        }
-        if ('Restore the backup' === $(this).text()) {
-
-            setTimeout(function () {
-                // Sync popups with highlighted texts.
-                $('.wp-block mdspan').each(function () {
-                    var selectedText = jQuery(this).attr('datatext');
-                    if ($('#' + selectedText).length === 0) {
-                        createBoard(selectedText, 'value', 'onChange');
-                    }
-                });
-
-                bring_back_comments();
-            }, 500);
-
-        }
-
-    });
-
-});
-
 function bring_back_comments() {
-    var $ = jQuery;
 
     // Reset Draft Comments Data.
     const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
     var data = {
-        'action': 'merge_draft_stacks',
+        'action': 'cf_merge_draft_stacks',
         'currentPostID': CurrentPostID,
     };
     $.post(ajaxurl, data, function (response) {
@@ -290,7 +289,7 @@ const mdComment = {
             const {onChange, value, activeAttributes} = this.props;
 
             // Remove tags if selected tag ID exist in 'remove-comment' attribute of body.
-            let removedComments = jQuery('body').attr('remove-comment');
+            let removedComments = $('body').attr('remove-comment');
             if (undefined !== activeAttributes.datatext &&
                 ( undefined !== removedComments && removedComments.indexOf(activeAttributes.datatext) !== -1  )
             ) {
@@ -301,33 +300,33 @@ const mdComment = {
                 let selectedText;
                 let txtselectedText;
 
-                jQuery('.cls-board-outer').removeClass('has_text');
+                $('.cls-board-outer').removeClass('has_text');
 
                 // Sync popups with highlighted texts.
-                jQuery('.wp-block mdspan').each(function () {
+                $('.wp-block mdspan').each(function () {
 
-                    selectedText = jQuery(this).attr('datatext');
+                    selectedText = $(this).attr('datatext');
 
                     // This will help to create CTRL-Z'ed Text's popup.
                     // remove this logic... <-- ne_pending, instead, remove highlight after CTRL-Z
                     // because we will not have comments in Board so we should not create new!
                     // user will have to add comment from scratch.
-                    if (undefined !== selectedText && jQuery('#' + selectedText).length === 0) {
+                    if (undefined !== selectedText && $('#' + selectedText).length === 0) {
 
-                        let removedComments = jQuery('body').attr('remove-comment');
+                        let removedComments = $('body').attr('remove-comment');
                         if ( undefined === removedComments ||
                             ( undefined !== removedComments && removedComments.indexOf(selectedText) === -1 )
                         ) {
                             createBoard(selectedText, value, onChange);
                         } else {
-                            jQuery('[datatext="' + selectedText + '"]').css('background', 'transparent');
+                            $('[datatext="' + selectedText + '"]').css('background', 'transparent');
                         }
                     }
 
-                    jQuery('#' + selectedText).addClass('has_text').show();
+                    $('#' + selectedText).addClass('has_text').show();
                 });
 
-                //selectedText = jQuery('mdspan[data-rich-text-format-boundary="true"]').attr('datatext');
+                //selectedText = $('mdspan[data-rich-text-format-boundary="true"]').attr('datatext');
                 selectedText = activeAttributes.datatext;
 
                 // Delete the popup and its highlight if user
@@ -335,24 +334,24 @@ const mdComment = {
                 if (
                     '' !== this.latestBoard
                     && selectedText !== this.latestBoard
-                    && 0 !== jQuery('#' + this.latestBoard).length
-                    && 0 === jQuery('#' + this.latestBoard + ' .commentContainer').length
+                    && 0 !== $('#' + this.latestBoard).length
+                    && 0 === $('#' + this.latestBoard + ' .commentContainer').length
                 ) {
                     onChange(removeFormat(this.latestValue, name));
-                    jQuery('#' + this.latestBoard).remove();
+                    $('#' + this.latestBoard).remove();
                 }
 
                 // If the text removed, remove comment from db and its popup.
                 // new_logic ->
                 // just hide these popups and only display on CTRLz
-                jQuery('#md-span-comments .cls-board-outer:not(.has_text)').each(function () {
-                    jQuery(this).hide();
+                $('#md-span-comments .cls-board-outer:not(.has_text)').each(function () {
+                    $(this).hide();
                 });
 
                 // Adding lastVal and onChanged props to make it deletable,
                 // these props were not added on load.
                 // It also helps to 'correct' the lastVal of CTRL-Z'ed Text's popup.
-                if (jQuery('#' + selectedText).length !== 0) {
+                if ($('#' + selectedText).length !== 0) {
                     ReactDOM.render(
                         <Board datatext={selectedText} lastVal={value} onChanged={onChange}/>,
                         document.getElementById(selectedText)
@@ -360,11 +359,11 @@ const mdComment = {
                 }
 
                 // Adding focus on selected text's popup.
-                jQuery('.cls-board-outer').removeClass('focus');
-                jQuery('#' + selectedText + '.cls-board-outer').addClass('focus');
+                $('.cls-board-outer').removeClass('focus');
+                $('#' + selectedText + '.cls-board-outer').addClass('focus');
 
                 // Removing dark highlights from other texts.
-                jQuery('mdspan:not([datatext="' + selectedText + '"])').removeAttr('data-rich-text-format-boundary');
+                $('mdspan:not([datatext="' + selectedText + '"])').removeAttr('data-rich-text-format-boundary');
 
                 // Float comments column.
                 this.floatComments(selectedText);
@@ -379,29 +378,29 @@ const mdComment = {
 
         floatComments(selectedText) {
 
-            if (jQuery('mdspan[data-rich-text-format-boundary="true"]').length !== 0) {
+            if ($('mdspan[data-rich-text-format-boundary="true"]').length !== 0) {
 
                 var scrollTop = '';
-                if( 0 !== jQuery('.block-editor-editor-skeleton__content').length ) {
+                if( 0 !== $('.block-editor-editor-skeleton__content').length ) {
                     // Latest WP Version
-                    scrollTop = jQuery('.block-editor-editor-skeleton__content').scrollTop();
+                    scrollTop = $('.block-editor-editor-skeleton__content').scrollTop();
 
-                } else if( 0 !== jQuery('.edit-post-layout__content').length ) {
+                } else if( 0 !== $('.edit-post-layout__content').length ) {
                     // Old WP Versions
-                    scrollTop = jQuery('.edit-post-layout__content').scrollTop();
+                    scrollTop = $('.edit-post-layout__content').scrollTop();
 
                 } else {
                     // Default
-                    scrollTop = jQuery('body').scrollTop();
+                    scrollTop = $('body').scrollTop();
                 }
 
-                let commentTop = jQuery('mdspan[data-rich-text-format-boundary="true"]').offset().top;
-                let currentPopupTop = jQuery('#' + selectedText + '.cls-board-outer').offset().top;
-                let commentColTop = jQuery('#md-span-comments').offset().top;
+                let commentTop = $('mdspan[data-rich-text-format-boundary="true"]').offset().top;
+                let currentPopupTop = $('#' + selectedText + '.cls-board-outer').offset().top;
+                let commentColTop = $('#md-span-comments').offset().top;
                 let diff = commentTop - currentPopupTop;
                 diff = commentColTop + diff + scrollTop;
 
-                jQuery('#md-span-comments').css({
+                $('#md-span-comments').css({
                     'top': diff - 150
                 });
             }
@@ -414,7 +413,7 @@ const mdComment = {
         }
 
         hidethread() {
-            jQuery('.cls-board-outer').removeClass('is_active');
+            $('.cls-board-outer').removeClass('is_active');
 
         }
 

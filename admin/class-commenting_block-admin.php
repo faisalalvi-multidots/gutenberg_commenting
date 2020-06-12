@@ -54,9 +54,12 @@ class Commenting_block_Admin {
 		$this->version     = $version;
 
 		// Disabled this, handling it with jQuery.
-		//add_action( 'post_updated', array( $this, 'mdgcf_post_status_changes' ), 10, 3 );
+		//add_action( 'post_updated', array( $this, 'cf_post_status_changes' ), 10, 3 );
 	}
 
+	/**
+	 * Get User Details using AJAX.
+	 */
 	public function cf_get_user() {
 
 		$current_user = wp_get_current_user();
@@ -69,6 +72,9 @@ class Commenting_block_Admin {
 
 	}
 
+	/**
+	 * Update Click AJAX function.
+	 */
 	public function cf_update_click() {
 
 		$post_ID = isset( $_POST['post_ID'] ) ? $_POST['post_ID'] : '';
@@ -76,11 +82,16 @@ class Commenting_block_Admin {
 		$update  = isset( $_POST['update'] ) ? $_POST['update'] : '';
 
 		if ( ! empty( $post_ID ) ) {
-			$this->mdgcf_post_status_changes( $post_ID, $post, $update );
+			$this->cf_post_status_changes( $post_ID, $post, $update );
 		}
 	}
 
-	public function mdgcf_post_status_changes( $post_ID, $post, $update ) {
+	/**
+	 * @param int $post_ID Post ID.
+	 * @param object/string $post Post Content.
+	 * @param string $update Status of the update.
+	 */
+	public function cf_post_status_changes( $post_ID, $post, $update ) {
 
 		$p_content = is_object( $post ) ? $post->post_content : $post;
 
@@ -301,7 +312,10 @@ class Commenting_block_Admin {
 
 	}
 
-	public function my_action() {
+	/**
+	 * Add Comment function.
+	 */
+	public function cf_add_comment() {
 
 		$commentList = str_replace( "\\", "", $_POST['commentList'] );
 		$commentList = json_decode( $commentList, true );
@@ -359,7 +373,10 @@ class Commenting_block_Admin {
 		wp_die();
 	}
 
-	public function mdgcf_comments_history() {
+	/**
+	 * Display Comment Activity in History Popup.
+	 */
+	public function cf_comments_history() {
 
 		$limit           = isset( $_POST['limit'] ) ? $_POST['limit'] : 10;
 		$current_post_id = $_POST['currentPostID'];
@@ -393,7 +410,7 @@ class Commenting_block_Admin {
 						$profile_url = $userData[ $udata ]['profileURL'];
 					}
 
-					$timestamp = isset( $v['resolved_timestamp'] ) ? $v['resolved_timestamp'] : '';
+					$timestamp = isset( $v['resolved_timestamp'] ) ? (int) $v['resolved_timestamp'] : '';
 					$dtTime    = date( $time_format . ' ' . $date_format, $timestamp );
 
 					$prepareDataTable[ $timestamp ][ $dataid . '_' . $udata ]['dataid']            = $dataid;
@@ -490,7 +507,10 @@ class Commenting_block_Admin {
 		wp_die();
 	}
 
-	public function my_action_edit() {
+	/**
+	 * Update Comment function.
+	 */
+	public function cf_update_comment() {
 
 		$current_post_id = $_POST['currentPostID'];
 		$metaId          = $_POST['metaId'];
@@ -519,7 +539,10 @@ class Commenting_block_Admin {
 		wp_die(); // this is required to terminate immediately and return a proper response
 	}
 
-	public function my_action_delete() {
+	/**
+	 * Delete Comment function.
+	 */
+	public function cf_delete_comment() {
 
 		$current_post_id = $_POST['currentPostID'];
 		$metaId          = $_POST['metaId'];
@@ -536,26 +559,10 @@ class Commenting_block_Admin {
 		wp_die(); // this is required to terminate immediately and return a proper response
 	}
 
-	public function my_action_fetch() {
-		global $wpdb; // this is how you get access to the database
-		$current_post_id = $_POST['currentPostID'];
-		// delete_post_meta($current_post_id,'mytest');
-
-		$commentList = get_post_meta( $current_post_id, 'mytest', true );
-		echo json_encode( maybe_unserialize( $commentList ) );
-
-		wp_die(); // this is required to terminate immediately and return a proper response
-	}
-
-	public function sb_getOwner_callback() {
-		$current_post_id = $_POST['currentPostID'];
-		$arr             = array();
-		//end($commentList);
-
-		$metaId = $_POST['metaId'];
-	}
-
-	public function reset_drafts_meta() {
+	/**
+	 * Reset Drafts meta.
+	 */
+	public function cf_reset_drafts_meta() {
 		$current_post_id = $_POST['currentPostID'];
 
 		$changed = 0;
@@ -595,7 +602,10 @@ class Commenting_block_Admin {
 		update_post_meta( $current_post_id, 'current_drafts', $drafts_meta );
 	}
 
-	public function merge_draft_stacks() {
+	/**
+	 * Merge Drafts meta.
+	 */
+	public function cf_merge_draft_stacks() {
 		$current_post_id = $_POST['currentPostID'];
 
 		$changed = 0;
@@ -634,7 +644,10 @@ class Commenting_block_Admin {
 
 	}
 
-	public function sb_resolve_thread_callback() {
+	/**
+	 * Resolve Thread function.
+	 */
+	public function cf_resolve_thread() {
 
 		$current_post_id = $_POST['currentPostID'];
 		$metaId          = $_POST['metaId'];
@@ -656,39 +669,23 @@ class Commenting_block_Admin {
 	}
 
 	/**
-	 * Function is used to register endpoint for rest api call of super widget.
+	 * Rest API for Gutenberg Commenting Feature.
 	 *
 	 */
-	public function career_data_by_select_route() {
-		register_rest_route( 'career-data-by-select1', 'my-route1', array(
+	public function cf_rest_api() {
+		register_rest_route( 'cf', 'cf-get-comments-api', array(
 				'methods'  => 'GET',
-				'callback' => array( $this, 'career_data1' ),
+				'callback' => array( $this, 'cf_get_comments' ),
 			)
 		);
 	}
 
 	/**
-	 * Register post meta field for suggestion history and suggestion mode enable.
-	 */
-	public function sb_register_post_meta_field() {
-		register_post_meta( '', 'sb_is_suggestion_mode', array(
-			'show_in_rest' => true,
-			'single' => true,
-			'type' => 'boolean',
-		) );
-		register_post_meta( '', 'sb_suggestion_history', array(
-			'show_in_rest' => true,
-			'single' => true,
-			'type' => 'string',
-		) );
-	}
-
-	/**
-	 * Function is used to fetch super widget data from aws server.
+	 * Function is used to fetch stored comments.
 	 *
 	 * @return mixed|\WP_REST_Response
 	 */
-	public function career_data1() {
+	public function cf_get_comments() {
 		$current_post_id = $_GET['currentPostID'];
 		$userDetails     = array();
 		$elID            = $_GET['elID'];
@@ -733,12 +730,6 @@ class Commenting_block_Admin {
 
 		return rest_ensure_response( $data );
 
-	}
-
-	public function sb_whois_callback() {
-		$current_post_id = $_GET['currentPostID'];
-		$currentUserID   = $_GET['uid'];
-		$elID            = $_GET['elID'];
 	}
 
 }

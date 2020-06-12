@@ -156,19 +156,16 @@ class Commenting_block {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-		$this->loader->add_action( 'wp_ajax_mdgcf_comments_history', $plugin_admin,'mdgcf_comments_history' );
+		$this->loader->add_action( 'wp_ajax_cf_comments_history', $plugin_admin,'cf_comments_history' );
 		$this->loader->add_action( 'wp_ajax_cf_update_click', $plugin_admin,'cf_update_click' );
 		$this->loader->add_action( 'wp_ajax_cf_get_user', $plugin_admin,'cf_get_user' );
-		$this->loader->add_action( 'wp_ajax_my_action', $plugin_admin,'my_action' );
-		$this->loader->add_action( 'wp_ajax_my_action_edit', $plugin_admin,'my_action_edit' );
-		$this->loader->add_action( 'wp_ajax_my_action_delete', $plugin_admin,'my_action_delete' );
-		$this->loader->add_action( 'wp_ajax_my_action_fetch', $plugin_admin,'my_action_fetch' );
-		$this->loader->add_action( 'wp_ajax_resolve_thread', $plugin_admin,'sb_resolve_thread_callback' );
-		$this->loader->add_action( 'wp_ajax_my_action_getOwner', $plugin_admin,'sb_getOwner_callback' );
-		$this->loader->add_action( 'wp_ajax_reset_drafts_meta', $plugin_admin,'reset_drafts_meta' );
-		$this->loader->add_action( 'wp_ajax_merge_draft_stacks', $plugin_admin,'merge_draft_stacks' );
-		$this->loader->add_action( 'rest_api_init', $plugin_admin, 'career_data_by_select_route' );
-		$this->loader->add_action( 'init', $plugin_admin, 'sb_register_post_meta_field' );
+		$this->loader->add_action( 'wp_ajax_cf_add_comment', $plugin_admin,'cf_add_comment' );
+		$this->loader->add_action( 'wp_ajax_cf_update_comment', $plugin_admin,'cf_update_comment' );
+		$this->loader->add_action( 'wp_ajax_cf_delete_comment', $plugin_admin,'cf_delete_comment' );
+		$this->loader->add_action( 'wp_ajax_cf_resolve_thread', $plugin_admin,'cf_resolve_thread' );
+		$this->loader->add_action( 'wp_ajax_cf_reset_drafts_meta', $plugin_admin,'cf_reset_drafts_meta' );
+		$this->loader->add_action( 'wp_ajax_cf_merge_draft_stacks', $plugin_admin,'cf_merge_draft_stacks' );
+		$this->loader->add_action( 'rest_api_init', $plugin_admin, 'cf_rest_api' );
 	}
 
 	/**

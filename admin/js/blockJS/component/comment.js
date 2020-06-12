@@ -45,7 +45,7 @@ export default class Comment extends React.Component {
 
     resolve(event) {
         //const myvalue = this.props.myval2;
-        if (confirm('Are you sure you want to delete this thread ?')) {
+        if (confirm('Are you sure you want to resolve this thread ?')) {
             var elID = jQuery(event.currentTarget).closest('.cls-board-outer');
             elID = elID[0].id;
             var elIDRemove = elID;
@@ -54,7 +54,7 @@ export default class Comment extends React.Component {
             elID = '_' + elID;
 
             var data = {
-                'action': 'resolve_thread',
+                'action': 'cf_resolve_thread',
                 'currentPostID': CurrentPostID,
                 'metaId': elID
             };
@@ -93,6 +93,8 @@ export default class Comment extends React.Component {
         } catch (e) {
             var owner = localStorage.getItem("userID");
         }
+
+        let str = this.state.showEditedDraft ? this.props.editedDraft : this.props.children;
 
         return (
             <div className={"commentContainer " + commentStatus} id={this.props.timestamp}>
@@ -135,7 +137,7 @@ export default class Comment extends React.Component {
                         </Fragment>
                     </div>
                 </div>
-                <div className="commentText">{this.state.showEditedDraft ? this.props.editedDraft : this.props.children}</div>
+                <div className="commentText">{str}</div>
             </div>
         );
     }

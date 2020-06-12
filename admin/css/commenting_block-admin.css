@@ -98,22 +98,17 @@ div#Div1 {
 }
 
 .cls-board-outer {
-  position: relative;    /* position: fixed; */
-  left: 0;    /* right: 300px; */
-
-  /* top: 240px; */
-
-  /* height: 50vh; */
+    position: relative;
+    left: 0;
   overflow: auto;
   background: #fff;
   width: 285px;
   box-shadow: rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
-  border-radius: 8px;    /* display:none; */
-
-  /* z-index: 1; */
+    border-radius: 8px;
   margin-bottom: 15px;
   transition: all 0.3s;
   font-size: 13px;
+    cursor: pointer;
 }
 
 .cls-board-outer.is_active {
@@ -501,8 +496,9 @@ mdspan[data-rich-text-format-boundary="true"] {
 }
 
 #md-span-comments.comments-loader {
-  opacity: 0;
+    /*opacity: 0;*/
 }
+#md-span-comments.comments-loader:before {content: 'Loading comments...';font-size: 10px;}
 
 div.charMap--container {
   margin: 2px;
