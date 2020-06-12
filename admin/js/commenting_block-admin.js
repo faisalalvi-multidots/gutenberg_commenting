@@ -96,7 +96,7 @@
         // Force action to publish draft comments even on clicking 'Disabled Update Button'.
         // This function handles the process even when content is not changed but comments are modified/added.
         // Label: 'custom_publish_handle'
-        $(document).on('click', 'button.components-button.editor-post-publish-button', function () {
+        $(document).on('click', 'button.components-button.editor-post-publish-button, .editor-post-save-draft', function () {
 
             const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
             const postContent = wp.data.select('core/editor').getEditedPostContent()

@@ -428,7 +428,7 @@ var mdComment = {
                     // If the text removed, remove comment from db and its popup.
                     // new_logic ->
                     // just hide these popups and only display on CTRLz
-                    $('#md-span-comments .cls-board-outer:not(.has_text)').each(function () {
+                    $('#md-span-comments .cls-board-outer:not(.has_text):not([data-sid])').each(function () {
                         $(this).hide();
                     });
 
@@ -446,8 +446,18 @@ var mdComment = {
                     // Removing dark highlights from other texts.
                     $('mdspan:not([datatext="' + selectedText + '"])').removeAttr('data-rich-text-format-boundary');
 
+                    // Removing dark highlights from other texts.
+                    //$('mdspan:not([datatext="' + selectedText + '"]), del:not([id="' + selectedText + '"]), ins:not([id="' + selectedText + '"])').removeAttr('data-rich-text-format-boundary');
+
+                    // update id if
+                    /*if(undefined === selectedText && 0 !== $('[data-rich-text-format-boundary="true"]').length) {
+                        selectedText = 'sg' + $('[data-rich-text-format-boundary="true"]').attr('id');
+                    }*/
+
                     // Float comments column.
-                    this.floatComments(selectedText);
+                    if (undefined !== selectedText) {
+                        this.floatComments(selectedText);
+                    }
                 }
             }
         }, {
