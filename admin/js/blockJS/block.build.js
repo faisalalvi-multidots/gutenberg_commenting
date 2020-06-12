@@ -1351,15 +1351,6 @@ var displayInitialSuggestion = true;
     _createClass(_class, [{
       key: 'componentDidMount',
       value: function componentDidMount() {
-        var commentWrapperNode = document.getElementById('md-suggestion-comments');
-        if (null === commentWrapperNode) {
-          commentWrapperNode = document.createElement('div');
-          commentWrapperNode.setAttribute('id', 'md-comments-wrapper');
-          var wpEditoNode = document.querySelector('.block-editor-writing-flow');
-          wpEditoNode.appendChild(commentWrapperNode);
-          this.addEvents();
-        }
-
         window.addEventListener('load', this.handleLoad);
       }
     }, {
@@ -1583,7 +1574,7 @@ var displayInitialSuggestion = true;
                         var time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
                         var dateTime = date + ' ' + time;
 
-                        switch (opts.com) {
+                        switch (op) {
                           case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT:
                             if (!isFormating && tagFound) {
                               isFormating = true;

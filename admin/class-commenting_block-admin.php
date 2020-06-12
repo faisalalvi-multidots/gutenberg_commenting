@@ -681,6 +681,22 @@ class Commenting_block_Admin {
 	}
 
 	/**
+	 * Register post meta field for suggestion history and suggestion mode enable.
+	 */
+	public function cf_register_post_meta_field() {
+		register_post_meta( '', 'sb_is_suggestion_mode', array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'boolean',
+		) );
+		register_post_meta( '', 'sb_suggestion_history', array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
+		) );
+	}
+
+	/**
 	 * Function is used to fetch stored comments.
 	 *
 	 * @return mixed|\WP_REST_Response

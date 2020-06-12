@@ -233,7 +233,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                       let time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
                       let dateTime = date + ' ' + time;
 
-                      switch (opts.com  ) {
+                      switch ( op ) {
                         case DiffMatchPatch.DIFF_INSERT:
                           if ( ! isFormating && tagFound ) {
                             isFormating = true;
