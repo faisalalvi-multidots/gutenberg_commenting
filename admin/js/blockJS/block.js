@@ -51,12 +51,18 @@ $(window).load(function () {
 
 function fetchComments() {
 
-    var newNode = document.createElement('div');
-    newNode.setAttribute("id", 'md-span-comments');
-    newNode.setAttribute("class", 'comments-loader');
+    var parentNode = document.createElement('div');
+    parentNode.setAttribute("id", 'md-comments-suggestions-parent');
     var referenceNode = document.querySelector('.block-editor-writing-flow');
+
     if (null !== referenceNode) {
-        referenceNode.appendChild(newNode);
+        referenceNode.appendChild(parentNode);
+
+        var commentNode = document.createElement('div');
+        commentNode.setAttribute("id", 'md-span-comments');
+        commentNode.setAttribute("class", 'comments-loader');
+        var parentNodeRef = document.getElementById('md-comments-suggestions-parent');
+        parentNodeRef.appendChild(commentNode);
 
         let selectedText;
         let txtselectedText;

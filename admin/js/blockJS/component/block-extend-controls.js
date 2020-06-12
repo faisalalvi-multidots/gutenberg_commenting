@@ -30,7 +30,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
         commentNode = document.createElement('div');
         commentNode.setAttribute('id', 'md-suggestion-comments');
         commentNode.setAttribute('class', 'comments-loader');
-        let wpEditoNode = document.querySelector('.block-editor-writing-flow');
+        let wpEditoNode = document.getElementById('md-comments-suggestions-parent');
         wpEditoNode.appendChild(commentNode);
         this.addEvents();
       }
