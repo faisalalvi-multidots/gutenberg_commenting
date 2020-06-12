@@ -134,6 +134,8 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                         let missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
                         let diffNextCloseTag = diff[v+1] ? diff[v+1][1].substring(0, 1) : '';
                         let diffNextTagId = diff[v+1] ? diff[v+1][1].substring(0, 3) : '';
+                        let diffCommentNode = diff[v][1].slice(-8);
+                        let diffCommentLastNode = diff[v+2] ? diff[v+2][1].substring(0,6) : '';
 
                         if ( ( '</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag ) && '>' === diffNextCloseTag ) {
                           diff[v][1] += diffNextCloseTag;
@@ -160,6 +162,9 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                             diff[v+2][1] = matchDelTag + diff[v+2][1];
                             ignoreCleanUp = true;
                           }
+                        } else if ( '<mdspan ' === diffCommentNode && 'dat' === diffNextTagId && 'class=' === diffCommentLastNode ) {
+                          diff[v+1][0] = 0;
+                          ignoreCleanUp = true;
                         }
 
                         if ( DiffMatchPatch.DIFF_EQUAL !== operation ) {

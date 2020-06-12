@@ -1485,6 +1485,8 @@ var displayInitialSuggestion = true;
                           var missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
                           var diffNextCloseTag = diff[v + 1] ? diff[v + 1][1].substring(0, 1) : '';
                           var diffNextTagId = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
+                          var diffCommentNode = diff[v][1].slice(-8);
+                          var diffCommentLastNode = diff[v + 2] ? diff[v + 2][1].substring(0, 6) : '';
 
                           if (('</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag) && '>' === diffNextCloseTag) {
                             diff[v][1] += diffNextCloseTag;
@@ -1511,6 +1513,9 @@ var displayInitialSuggestion = true;
                               diff[v + 2][1] = matchDelTag + diff[v + 2][1];
                               ignoreCleanUp = true;
                             }
+                          } else if ('<mdspan ' === diffCommentNode && 'dat' === diffNextTagId && 'class=' === diffCommentLastNode) {
+                            diff[v + 1][0] = 0;
+                            ignoreCleanUp = true;
                           }
 
                           if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
