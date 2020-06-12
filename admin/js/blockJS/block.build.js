@@ -1269,6 +1269,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             },
             wp.element.createElement(ToggleControl, {
               label: __('Suggestion mode'),
+              className: "suggestion-toggle",
               checked: suggestionEnable,
               onChange: function onChange(value) {
                 updateMeta({ sb_is_suggestion_mode: value });

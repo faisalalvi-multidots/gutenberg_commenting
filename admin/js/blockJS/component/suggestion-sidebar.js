@@ -34,6 +34,7 @@
           >
             <ToggleControl
               label={__('Suggestion mode')}
+              className="suggestion-toggle"
               checked={suggestionEnable}
               onChange={( value ) => {
                 updateMeta( { sb_is_suggestion_mode:  value } );
