@@ -75,7 +75,7 @@
 
                 // Fetch comments from db.
                 var data = {
-                    'action': 'mdgcf_comments_history',
+                    'action': 'cf_comments_history',
                     'currentPostID': CurrentPostID,
                     'limit': 10,
                 };

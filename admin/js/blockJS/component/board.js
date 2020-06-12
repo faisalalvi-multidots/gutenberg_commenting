@@ -29,7 +29,7 @@ export default class Board extends React.Component {
         this.commentedOnText = this.props.commentedOnText;
 
         if (1 !== this.props.freshBoard) {
-            const allPosts = wp.apiFetch({path: 'career-data-by-select1/my-route1/?currentPostID=' + currentPostID + '&elID=' + metaselectedText}).then(fps => {
+            const allPosts = wp.apiFetch({path: 'cf/cf-get-comments-api/?currentPostID=' + currentPostID + '&elID=' + metaselectedText}).then(fps => {
 
                 const {userDetails, resolved, commentedOnText} = fps;
 
@@ -108,7 +108,7 @@ export default class Board extends React.Component {
         const {value, onChange} = this.props;
         elID = '_' + elID;
         var data = {
-            'action': 'my_action_delete',
+            'action': 'cf_delete_comment',
             'currentPostID': CurrentPostID,
             'timestamp': cTimestamp,
             metaId: elID
@@ -150,7 +150,7 @@ export default class Board extends React.Component {
         const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
         metaID = '_' + metaID;
         var data = {
-            'action': 'my_action_edit',
+            'action': 'cf_update_comment',
             'currentPostID': CurrentPostID,
             'editedComment': JSON.stringify(newArr),
             'metaId': metaID
@@ -204,7 +204,7 @@ export default class Board extends React.Component {
             var el = currentTextID.substring(3);
             var metaId = '_' + el;
             var data = {
-                'action': 'my_action',
+                'action': 'cf_add_comment',
                 'currentPostID': CurrentPostID,
                 'commentList': JSON.stringify(arr),
                 'metaId': metaId
