@@ -1350,6 +1350,15 @@ var displayInitialSuggestion = true;
     _createClass(_class, [{
       key: 'componentDidMount',
       value: function componentDidMount() {
+        var commentWrapperNode = document.getElementById('md-suggestion-comments');
+        if (null === commentWrapperNode) {
+          commentWrapperNode = document.createElement('div');
+          commentWrapperNode.setAttribute('id', 'md-comments-wrapper');
+          var wpEditoNode = document.querySelector('.block-editor-writing-flow');
+          wpEditoNode.appendChild(commentWrapperNode);
+          this.addEvents();
+        }
+
         window.addEventListener('load', this.handleLoad);
       }
     }, {
@@ -1399,7 +1408,7 @@ var displayInitialSuggestion = true;
                 if (editRecord.edits.blocks[currentBlockIndex] && editRecord.edits.blocks[currentBlockIndex].name === 'core/paragraph') {
                   var attr = editRecord.edits.blocks[currentBlockIndex].attributes;
                   var currentAttr = wp.data.select('core/block-editor').getBlockAttributes(clientId);
-                  if (currentNewContent !== currentAttr.content) {
+                  if ('' === currentAttr.content || currentNewContent !== currentAttr.content) {
                     displayInitialSuggestion = false;
                     if (0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId]) {
                       beforeChangeContent[clientId] = attr.content;
@@ -1443,93 +1452,94 @@ var displayInitialSuggestion = true;
                       var ignoreCleanUp = false;
 
                       console.log(diff[0][1]);
+                      if ('' !== currentAttr.content) {
+                        for (var v = 0; v < diff.length; v++) {
 
-                      for (var v = 0; v < diff.length; v++) {
+                          var operation = diff[v][0];
+                          var diffText = diff[v][1];
 
-                        var operation = diff[v][0];
-                        var diffText = diff[v][1];
-
-                        if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
-                          var nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 6) : '';
-                          if ('</del>' === nextDiffText) {
-                            if (0 === diff[v + 1][0] && diff[v - 1]) {
-                              diff[v + 1][1] = diff[v + 1][1].substring(6);
-                              diff[v - 1][1] += nextDiffText;
-                            }
-                          } else {
-                            nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 20) : '';
-                            var diffMatchPattern = /<\/del>/;
-                            var prevLastChar = diff[v - 1] ? diff[v - 1][1].slice(-3) : '';
-                            var prevTagIndex = diff[v - 1] ? diff[v - 1][1].lastIndexOf('<del') : -1;
-                            if (-1 !== prevTagIndex && ';">' === prevLastChar && diffMatchPattern.test(nextDiffText)) {
-                              var lastDelTag = diff[v - 1][1].substring(prevTagIndex);
-                              diff[v - 1][1] = diff[v - 1][1].substring(0, prevTagIndex);
-                              diff[v + 1][1] = lastDelTag + diff[v + 1][1];
-                            }
-                          }
-                        }
-
-                        var diffCurrentLastTag = diff[v][1].slice(-5);
-                        var missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
-                        var diffNextCloseTag = diff[v + 1] ? diff[v + 1][1].substring(0, 1) : '';
-                        var diffNextTagId = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
-
-                        if (('</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag) && '>' === diffNextCloseTag) {
-                          diff[v][1] += diffNextCloseTag;
-                          diff[v + 1][1] = diff[v + 1][1].substring(1);
-                          ignoreCleanUp = true;
-                        } else if ('<ins ' === diffCurrentLastTag && 'id=' === diffNextTagId) {
-                          diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrentLastTag));
-                          diff[v + 1][1] = diffCurrentLastTag + diff[v + 1][1];
-                          ignoreCleanUp = true;
-                        } else if (null !== missingCurrentLastTag) {
-                          diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missingCurrentLastTag));
-                          diff[v + 1][1] = missingCurrentLastTag + diff[v + 1][1];
-                          ignoreCleanUp = true;
-                        } else if (null !== diff[v][1].match(/<del id="[\d]{0,1}$/)) {
-                          var missDelLastTag = diff[v][1].match(/<del id="[\d]{0,1}$/);
-                          diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
-                          diff[v + 1][1] = missDelLastTag + diff[v + 1][1];
-                          ignoreCleanUp = true;
-                        } else if (null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag) {
-                          var diffNextOfNext = diff[v + 2] ? diff[v + 2][1] : '';
-                          if (1 === diffNextCloseTag.length && '' !== diffNextOfNext) {
-                            var matchDelTag = diff[v][1].match(/<del id=".*">$/);
-                            diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(matchDelTag));
-                            diff[v + 2][1] = matchDelTag + diff[v + 2][1];
-                            ignoreCleanUp = true;
-                          }
-                        }
-
-                        if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
-
-                          var currentDiff = diff[v][1].substring(0, 3);
-                          var prevDiff = diff[v - 1] ? diff[v - 1][1].slice(-1) : '';
-                          var nextDiff = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
-                          var currentLastdiff = diff[v][1].slice(-1);
-                          if (('ins' === currentDiff || 'del' === currentDiff) && '<' === prevDiff && ('ins' === nextDiff || 'del') && '<' === currentLastdiff) {
-                            var prevLastIndex = diff[v - 1][1].lastIndexOf(prevDiff);
-                            var currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
-                            diff[v - 1][1] = diff[v - 1][1].substring(0, prevLastIndex);
-                            diff[v][1] = prevDiff + diff[v][1].substring(0, currentLastIndex);
-                            diff[v + 1][1] = currentLastdiff + diff[v + 1][1];
-                            ignoreCleanUp = true;
-                          }
-
-                          diffText = diffText.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
-
-                          for (var i = 0; i < tagArray.length; i++) {
-                            var dynamicRegex = void 0;
-                            if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
-                              dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
+                          if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
+                            var nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 6) : '';
+                            if ('</del>' === nextDiffText) {
+                              if (0 === diff[v + 1][0] && diff[v - 1]) {
+                                diff[v + 1][1] = diff[v + 1][1].substring(6);
+                                diff[v - 1][1] += nextDiffText;
+                              }
                             } else {
-                              dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                              nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 20) : '';
+                              var diffMatchPattern = /<\/del>/;
+                              var prevLastChar = diff[v - 1] ? diff[v - 1][1].slice(-3) : '';
+                              var prevTagIndex = diff[v - 1] ? diff[v - 1][1].lastIndexOf('<del') : -1;
+                              if (-1 !== prevTagIndex && ';">' === prevLastChar && diffMatchPattern.test(nextDiffText)) {
+                                var lastDelTag = diff[v - 1][1].substring(prevTagIndex);
+                                diff[v - 1][1] = diff[v - 1][1].substring(0, prevTagIndex);
+                                diff[v + 1][1] = lastDelTag + diff[v + 1][1];
+                              }
+                            }
+                          }
+
+                          var diffCurrentLastTag = diff[v][1].slice(-5);
+                          var missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
+                          var diffNextCloseTag = diff[v + 1] ? diff[v + 1][1].substring(0, 1) : '';
+                          var diffNextTagId = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
+
+                          if (('</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag) && '>' === diffNextCloseTag) {
+                            diff[v][1] += diffNextCloseTag;
+                            diff[v + 1][1] = diff[v + 1][1].substring(1);
+                            ignoreCleanUp = true;
+                          } else if ('<ins ' === diffCurrentLastTag && 'id=' === diffNextTagId) {
+                            diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrentLastTag));
+                            diff[v + 1][1] = diffCurrentLastTag + diff[v + 1][1];
+                            ignoreCleanUp = true;
+                          } else if (null !== missingCurrentLastTag) {
+                            diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missingCurrentLastTag));
+                            diff[v + 1][1] = missingCurrentLastTag + diff[v + 1][1];
+                            ignoreCleanUp = true;
+                          } else if (null !== diff[v][1].match(/<del id="[\d]{0,1}$/)) {
+                            var missDelLastTag = diff[v][1].match(/<del id="[\d]{0,1}$/);
+                            diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
+                            diff[v + 1][1] = missDelLastTag + diff[v + 1][1];
+                            ignoreCleanUp = true;
+                          } else if (null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag) {
+                            var diffNextOfNext = diff[v + 2] ? diff[v + 2][1] : '';
+                            if (1 === diffNextCloseTag.length && '' !== diffNextOfNext) {
+                              var matchDelTag = diff[v][1].match(/<del id=".*">$/);
+                              diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(matchDelTag));
+                              diff[v + 2][1] = matchDelTag + diff[v + 2][1];
+                              ignoreCleanUp = true;
+                            }
+                          }
+
+                          if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
+
+                            var currentDiff = diff[v][1].substring(0, 3);
+                            var prevDiff = diff[v - 1] ? diff[v - 1][1].slice(-1) : '';
+                            var nextDiff = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
+                            var currentLastdiff = diff[v][1].slice(-1);
+                            if (('ins' === currentDiff || 'del' === currentDiff) && '<' === prevDiff && ('ins' === nextDiff || 'del') && '<' === currentLastdiff) {
+                              var prevLastIndex = diff[v - 1][1].lastIndexOf(prevDiff);
+                              var currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
+                              diff[v - 1][1] = diff[v - 1][1].substring(0, prevLastIndex);
+                              diff[v][1] = prevDiff + diff[v][1].substring(0, currentLastIndex);
+                              diff[v + 1][1] = currentLastdiff + diff[v + 1][1];
+                              ignoreCleanUp = true;
                             }
 
-                            var regex = new RegExp(dynamicRegex, "g");
-                            if (regex.test(diffText)) {
-                              matchRegex = true;
-                              break;
+                            diffText = diffText.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
+
+                            for (var i = 0; i < tagArray.length; i++) {
+                              var dynamicRegex = void 0;
+                              if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
+                                dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
+                              } else {
+                                dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                              }
+
+                              var regex = new RegExp(dynamicRegex, "g");
+                              if (regex.test(diffText)) {
+                                matchRegex = true;
+                                break;
+                              }
                             }
                           }
                         }
@@ -1547,7 +1557,7 @@ var displayInitialSuggestion = true;
                         var op = diff[x][0];
                         var text = diff[x][1];
                         var tagFound = false;
-                        if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op) {
+                        if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttr.content) {
                           text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
                           if (!isFormating) {
                             tagArray.forEach(function (tagName) {

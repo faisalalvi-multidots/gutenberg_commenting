@@ -60,7 +60,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
               if (editRecord.edits.blocks[currentBlockIndex] && editRecord.edits.blocks[currentBlockIndex].name === 'core/paragraph') {
                 let attr = editRecord.edits.blocks[currentBlockIndex].attributes;
                 let currentAttr = wp.data.select('core/block-editor').getBlockAttributes(clientId);
-                if ( currentNewContent !== currentAttr.content ) {
+                if ( '' === currentAttr.content || currentNewContent !== currentAttr.content ) {
                   displayInitialSuggestion = false;
                   if ( 0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId] ) {
                     beforeChangeContent[clientId] = attr.content;
@@ -104,93 +104,94 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                     let ignoreCleanUp = false;
 
                     console.log(diff[0][1]);
+                    if ( '' !== currentAttr.content ) {
+                      for ( let v = 0; v < diff.length; v++) {
 
-                    for ( let v = 0; v < diff.length; v++) {
+                        let operation = diff[v][0];
+                        let diffText = diff[v][1];
 
-                      let operation = diff[v][0];
-                      let diffText = diff[v][1];
-
-                      if ( DiffMatchPatch.DIFF_INSERT === operation ) {
-                        let nextDiffText = diff[v+1] ? diff[v+1][1].substring(0, 6) : '';
-                        if ( '</del>' === nextDiffText ) {
-                          if ( 0 === diff[v+1][0] && diff[v-1] ) {
-                            diff[v+1][1] = diff[v+1][1].substring(6);
-                            diff[v-1][1] += nextDiffText ;
-                          }
-                        } else {
-                          nextDiffText = diff[v+1] ? diff[v+1][1].substring(0, 20) : '';
-                          let diffMatchPattern = /<\/del>/;
-                          let prevLastChar = diff[v-1] ? diff[v-1][1].slice(-3) : '';
-                          let prevTagIndex = diff[v-1] ? diff[v-1][1].lastIndexOf('<del') : -1;
-                          if ( -1 !== prevTagIndex && ';">' === prevLastChar && diffMatchPattern.test( nextDiffText ) ) {
-                            let lastDelTag =  diff[v-1][1].substring(prevTagIndex);
-                            diff[v-1][1] = diff[v-1][1].substring(0,prevTagIndex);
-                            diff[v+1][1] = lastDelTag + diff[v+1][1];
-                          }
-                        }
-                      }
-
-                      let diffCurrentLastTag = diff[v][1].slice(-5);
-                      let missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
-                      let diffNextCloseTag = diff[v+1] ? diff[v+1][1].substring(0, 1) : '';
-                      let diffNextTagId = diff[v+1] ? diff[v+1][1].substring(0, 3) : '';
-
-                      if ( ( '</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag ) && '>' === diffNextCloseTag ) {
-                        diff[v][1] += diffNextCloseTag;
-                        diff[v+1][1] = diff[v+1][1].substring(1);
-                        ignoreCleanUp = true;
-                      } else if ( '<ins ' === diffCurrentLastTag && 'id=' === diffNextTagId ) {
-                        diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrentLastTag));
-                        diff[v+1][1] = diffCurrentLastTag + diff[v+1][1];
-                        ignoreCleanUp = true;
-                      } else if ( null !== missingCurrentLastTag ) {
-                        diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missingCurrentLastTag));
-                        diff[v+1][1] = missingCurrentLastTag + diff[v+1][1];
-                        ignoreCleanUp = true;
-                      } else if ( null !== diff[v][1].match(/<del id="[\d]{0,1}$/) ) {
-                        let missDelLastTag = diff[v][1].match(/<del id="[\d]{0,1}$/);
-                        diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
-                        diff[v+1][1] = missDelLastTag + diff[v+1][1];
-                        ignoreCleanUp = true;
-                      } else if ( null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag ) {
-                        let diffNextOfNext = diff[v+2] ? diff[v+2][1] : '';
-                        if ( 1 === diffNextCloseTag.length && '' !== diffNextOfNext ) {
-                          let matchDelTag = diff[v][1].match(/<del id=".*">$/);
-                          diff[v][1] = diff[v][1].substring(0,diff[v][1].lastIndexOf(matchDelTag));
-                          diff[v+2][1] = matchDelTag + diff[v+2][1];
-                          ignoreCleanUp = true;
-                        }
-                      }
-
-                      if ( DiffMatchPatch.DIFF_EQUAL !== operation ) {
-
-                        let currentDiff = diff[v][1].substring(0,3);
-                        let prevDiff = diff[v-1] ? diff[v-1][1].slice(-1) : '';
-                        let nextDiff = diff[v+1] ? diff[v+1][1].substring(0,3) : '';
-                        let currentLastdiff = diff[v][1].slice(-1);
-                        if ( ( ( 'ins' === currentDiff || 'del' === currentDiff ) && '<' === prevDiff ) && ( ( 'ins' === nextDiff || 'del' ) && '<' === currentLastdiff ) ) {
-                          let prevLastIndex = diff[v-1][1].lastIndexOf(prevDiff);
-                          let currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
-                          diff[v-1][1] = diff[v-1][1].substring(0,prevLastIndex);
-                          diff[v][1] = prevDiff + diff[v][1].substring(0,currentLastIndex);
-                          diff[v+1][1] = currentLastdiff + diff[v+1][1];
-                          ignoreCleanUp = true;
-                        }
-
-                        diffText = diffText.replace(/<\/?ins[^>]*>/g,"").replace(/<\/?del[^>]*>/g,"");
-
-                        for ( let i = 0; i < tagArray.length; i++ ) {
-                          let dynamicRegex;
-                          if ( DiffMatchPatch.DIFF_INSERT === operation ) {
-                            dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
+                        if ( DiffMatchPatch.DIFF_INSERT === operation ) {
+                          let nextDiffText = diff[v+1] ? diff[v+1][1].substring(0, 6) : '';
+                          if ( '</del>' === nextDiffText ) {
+                            if ( 0 === diff[v+1][0] && diff[v-1] ) {
+                              diff[v+1][1] = diff[v+1][1].substring(6);
+                              diff[v-1][1] += nextDiffText ;
+                            }
                           } else {
-                            dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                            nextDiffText = diff[v+1] ? diff[v+1][1].substring(0, 20) : '';
+                            let diffMatchPattern = /<\/del>/;
+                            let prevLastChar = diff[v-1] ? diff[v-1][1].slice(-3) : '';
+                            let prevTagIndex = diff[v-1] ? diff[v-1][1].lastIndexOf('<del') : -1;
+                            if ( -1 !== prevTagIndex && ';">' === prevLastChar && diffMatchPattern.test( nextDiffText ) ) {
+                              let lastDelTag =  diff[v-1][1].substring(prevTagIndex);
+                              diff[v-1][1] = diff[v-1][1].substring(0,prevTagIndex);
+                              diff[v+1][1] = lastDelTag + diff[v+1][1];
+                            }
+                          }
+                        }
+
+                        let diffCurrentLastTag = diff[v][1].slice(-5);
+                        let missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
+                        let diffNextCloseTag = diff[v+1] ? diff[v+1][1].substring(0, 1) : '';
+                        let diffNextTagId = diff[v+1] ? diff[v+1][1].substring(0, 3) : '';
+
+                        if ( ( '</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag ) && '>' === diffNextCloseTag ) {
+                          diff[v][1] += diffNextCloseTag;
+                          diff[v+1][1] = diff[v+1][1].substring(1);
+                          ignoreCleanUp = true;
+                        } else if ( '<ins ' === diffCurrentLastTag && 'id=' === diffNextTagId ) {
+                          diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrentLastTag));
+                          diff[v+1][1] = diffCurrentLastTag + diff[v+1][1];
+                          ignoreCleanUp = true;
+                        } else if ( null !== missingCurrentLastTag ) {
+                          diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missingCurrentLastTag));
+                          diff[v+1][1] = missingCurrentLastTag + diff[v+1][1];
+                          ignoreCleanUp = true;
+                        } else if ( null !== diff[v][1].match(/<del id="[\d]{0,1}$/) ) {
+                          let missDelLastTag = diff[v][1].match(/<del id="[\d]{0,1}$/);
+                          diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
+                          diff[v+1][1] = missDelLastTag + diff[v+1][1];
+                          ignoreCleanUp = true;
+                        } else if ( null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag ) {
+                          let diffNextOfNext = diff[v+2] ? diff[v+2][1] : '';
+                          if ( 1 === diffNextCloseTag.length && '' !== diffNextOfNext ) {
+                            let matchDelTag = diff[v][1].match(/<del id=".*">$/);
+                            diff[v][1] = diff[v][1].substring(0,diff[v][1].lastIndexOf(matchDelTag));
+                            diff[v+2][1] = matchDelTag + diff[v+2][1];
+                            ignoreCleanUp = true;
+                          }
+                        }
+
+                        if ( DiffMatchPatch.DIFF_EQUAL !== operation ) {
+
+                          let currentDiff = diff[v][1].substring(0,3);
+                          let prevDiff = diff[v-1] ? diff[v-1][1].slice(-1) : '';
+                          let nextDiff = diff[v+1] ? diff[v+1][1].substring(0,3) : '';
+                          let currentLastdiff = diff[v][1].slice(-1);
+                          if ( ( ( 'ins' === currentDiff || 'del' === currentDiff ) && '<' === prevDiff ) && ( ( 'ins' === nextDiff || 'del' ) && '<' === currentLastdiff ) ) {
+                            let prevLastIndex = diff[v-1][1].lastIndexOf(prevDiff);
+                            let currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
+                            diff[v-1][1] = diff[v-1][1].substring(0,prevLastIndex);
+                            diff[v][1] = prevDiff + diff[v][1].substring(0,currentLastIndex);
+                            diff[v+1][1] = currentLastdiff + diff[v+1][1];
+                            ignoreCleanUp = true;
                           }
 
-                          let regex = new RegExp( dynamicRegex, "g");
-                          if ( regex.test(diffText) ) {
-                            matchRegex = true;
-                            break;
+                          diffText = diffText.replace(/<\/?ins[^>]*>/g,"").replace(/<\/?del[^>]*>/g,"");
+
+                          for ( let i = 0; i < tagArray.length; i++ ) {
+                            let dynamicRegex;
+                            if ( DiffMatchPatch.DIFF_INSERT === operation ) {
+                              dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
+                            } else {
+                              dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                            }
+
+                            let regex = new RegExp( dynamicRegex, "g");
+                            if ( regex.test(diffText) ) {
+                              matchRegex = true;
+                              break;
+                            }
                           }
                         }
                       }
@@ -207,7 +208,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                       let op = diff[x][0];
                       let text = diff[x][1];
                       let tagFound = false;
-                      if ( ( patternResult || matchRegex ) && DiffMatchPatch.DIFF_EQUAL !== op ) {
+                      if ( ( patternResult || matchRegex ) && DiffMatchPatch.DIFF_EQUAL !== op && '' !== currentAttr.content ) {
                         text = text.replace(/<\/?ins[^>]*>/g,"").replace(/<\/?del[^>]*>/g,"");
                         if ( ! isFormating ) {
                           tagArray.forEach(( tagName ) => {
