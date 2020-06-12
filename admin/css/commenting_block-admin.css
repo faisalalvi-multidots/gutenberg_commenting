@@ -670,3 +670,28 @@ body.hide-comments #md-span-comments {
   0%{-webkit-transform:rotate(0deg);-moz-transform:rotate(0deg);-ms-transform:rotate(0deg);-o-transform:rotate(0deg);transform:rotate(0deg)}
   100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}
 }
+
+
+.commentContainer .suggest-box-action button {
+    background: none !important;
+}
+
+.commentContainer .suggest-box-action button svg {
+    fill: rgb(125, 174, 239);
+}
+
+.commentContainer:hover .suggest-box-action button svg {
+    fill: rgb(26, 115, 232);
+}
+
+.comment-header .suggest-box-action {
+    width: 80px;
+}
+
+.comment-header .suggest-box-action button {
+    margin: 0 !important;
+}
+
+.comment-header .suggest-box-action button:hover {
+    background-color: rgba(80, 80, 80, 0.06) !important;
+}
