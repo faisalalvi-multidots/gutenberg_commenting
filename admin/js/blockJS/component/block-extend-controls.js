@@ -29,7 +29,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
       if ( null === commentNode ) {
         commentNode = document.createElement('div');
         commentNode.setAttribute('id', 'md-suggestion-comments');
-        commentNode.setAttribute('class', 'comments-loader');
+        //commentNode.setAttribute('class', 'comments-loader');
         let wpEditoNode = document.getElementById('md-comments-suggestions-parent');
         wpEditoNode.appendChild(commentNode);
         this.addEvents();
@@ -188,6 +188,9 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                             let dynamicRegex;
                             if ( DiffMatchPatch.DIFF_INSERT === operation ) {
                               dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
+                              if ( 'a' === tagArray[i] && null !== diffText.match(/<a (.*)>(.*)<\/a>/) ) {
+                                break;
+                              }
                             } else {
                               dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
                             }

@@ -139,6 +139,22 @@ function fetchComments() {
 
     var parentNode = document.createElement('div');
     parentNode.setAttribute("id", 'md-comments-suggestions-parent');
+
+    var parentChildDiv = document.createElement('div');
+    parentChildDiv.setAttribute('id', 'md-tabs');
+
+    var tabCommentSpan = document.createElement('span');
+    tabCommentSpan.setAttribute('class', 'comment');
+    tabCommentSpan.innerText = 'Comments';
+
+    var tabSuggestionSpan = document.createElement('span');
+    tabSuggestionSpan.setAttribute('class', 'suggestion');
+    tabSuggestionSpan.innerText = 'Suggestions';
+
+    parentChildDiv.appendChild(tabCommentSpan);
+    parentChildDiv.appendChild(tabSuggestionSpan);
+    parentNode.appendChild(parentChildDiv);
+
     var referenceNode = document.querySelector('.block-editor-writing-flow');
 
     if (null !== referenceNode) {
@@ -1381,7 +1397,7 @@ var displayInitialSuggestion = true;
         if (null === commentNode) {
           commentNode = document.createElement('div');
           commentNode.setAttribute('id', 'md-suggestion-comments');
-          commentNode.setAttribute('class', 'comments-loader');
+          //commentNode.setAttribute('class', 'comments-loader');
           var wpEditoNode = document.getElementById('md-comments-suggestions-parent');
           wpEditoNode.appendChild(commentNode);
           this.addEvents();
@@ -1545,6 +1561,9 @@ var displayInitialSuggestion = true;
                               var dynamicRegex = void 0;
                               if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
                                 dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
+                                if ('a' === tagArray[i] && null !== diffText.match(/<a (.*)>(.*)<\/a>/)) {
+                                  break;
+                                }
                               } else {
                                 dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
                               }

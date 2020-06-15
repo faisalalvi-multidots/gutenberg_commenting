@@ -53,6 +53,22 @@ function fetchComments() {
 
     var parentNode = document.createElement('div');
     parentNode.setAttribute("id", 'md-comments-suggestions-parent');
+
+    let parentChildDiv = document.createElement('div');
+    parentChildDiv.setAttribute('id', 'md-tabs');
+
+    let tabCommentSpan = document.createElement('span');
+    tabCommentSpan.setAttribute('class', 'comment');
+    tabCommentSpan.innerText = 'Comments';
+
+    let tabSuggestionSpan = document.createElement('span');
+    tabSuggestionSpan.setAttribute('class', 'suggestion');
+    tabSuggestionSpan.innerText = 'Suggestions';
+
+    parentChildDiv.appendChild(tabCommentSpan);
+    parentChildDiv.appendChild(tabSuggestionSpan);
+    parentNode.appendChild(parentChildDiv);
+
     var referenceNode = document.querySelector('.block-editor-writing-flow');
 
     if (null !== referenceNode) {
