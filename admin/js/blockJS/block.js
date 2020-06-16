@@ -58,7 +58,7 @@ function fetchComments() {
     parentChildDiv.setAttribute('id', 'md-tabs');
 
     let tabCommentSpan = document.createElement('span');
-    tabCommentSpan.setAttribute('class', 'comment');
+    tabCommentSpan.setAttribute('class', 'comment active');
     tabCommentSpan.innerText = 'Comments';
 
     let tabSuggestionSpan = document.createElement('span');

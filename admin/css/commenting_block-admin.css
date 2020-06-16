@@ -485,9 +485,16 @@ mdspan[data-rich-text-format-boundary="true"] {
   background: url('/wp-admin/images/spinner.gif') no-repeat;
 }
 
-#md-span-comments, #md-suggestion-comments {
+/*#md-span-comments, #md-suggestion-comments {
+position: absolute;
+top: 250px;
+right: 15px;
+transition: all 0.5s;
+z-index: 99;
+}*/
+#md-comments-suggestions-parent {
   position: absolute;
-  top: 250px;
+  top: 167px;
   right: 15px;
   transition: all 0.5s;
   z-index: 99;
@@ -671,11 +678,62 @@ body.hide-comments #md-span-comments {
   bottom: 15px;
 }
 
-@-webkit-keyframes rotate-forever{0%{-webkit-transform:rotate(0deg);-moz-transform:rotate(0deg);-ms-transform:rotate(0deg);-o-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}
+@-webkit-keyframes rotate-forever {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg)
+  }
 
-@-moz-keyframes rotate-forever{0%{-webkit-transform:rotate(0deg);-moz-transform:rotate(0deg);-ms-transform:rotate(0deg);-o-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg)
+  }
 
-@keyframes rotate-forever{0%{-webkit-transform:rotate(0deg);-moz-transform:rotate(0deg);-ms-transform:rotate(0deg);-o-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}
+}
+
+@-moz-keyframes rotate-forever {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg)
+  }
+
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg)
+  }
+
+}
+
+@keyframes rotate-forever {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg)
+  }
+
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg)
+  }
+
+}
 
 .commentContainer .suggest-box-action button {
   background: none !important;
@@ -702,9 +760,44 @@ body.hide-comments #md-span-comments {
 }
 
 .suggestion-toggle {
-    padding: 20px 10px;
+  padding: 20px 10px;
 }
 
 .suggestion-toggle .components-base-control__field {
-    margin: 0;
+  margin: 0;
+}
+
+#md-tabs {
+  margin-bottom: 15px;
+  display: flex;
+}
+
+#md-tabs span {
+  font-size: 12px;
+  width: 50%;
+  text-align: center;
+  padding: 10px 10px;
+  cursor: pointer;
+  background: #fff;
+  border-bottom: 1px solid #1989c1;
+  text-transform: uppercase;
+  font-weight: 500;
+  position: relative;
+  color: #1989c1;
+}
+
+#md-tabs span.active {
+  background: #1989c1;
+  color: #fff;
+}
+
+#md-tabs span.active:after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #1989c1;
+  left: 50%;
+  margin-left: -10px;
 }
