@@ -1250,6 +1250,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   var registerPlugin = wpPlugins.registerPlugin;
   var ToggleControl = wpComponents.ToggleControl;
 
+  var formatTypes = wp.data.select('core/rich-text').getFormatTypes();
+  var toggleFormatTypes = [];
+  var toogleFormatFlag = false;
+  formatTypes.map(function (formator) {
+    if ('core/link' === formator.name || 'core/text-color' === formator.name || 'core/image' === formator.name) {
+      toggleFormatTypes.push(formator);
+    }
+  });
+
   var SBSidebar = function (_Component) {
     _inherits(SBSidebar, _Component);
 
@@ -1260,7 +1269,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     }
 
     _createClass(SBSidebar, [{
-      key: "render",
+      key: 'render',
       value: function render() {
         // Nested object destructuring.
         var _props = this.props,
@@ -1270,28 +1279,39 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             updateMeta = _props.updateMeta;
 
 
+        if (toogleFormatFlag !== suggestionEnable) {
+          toogleFormatFlag = suggestionEnable;
+          toggleFormatTypes.map(function (formator) {
+            if (suggestionEnable) {
+              wp.richText.unregisterFormatType(formator.name);
+            } else {
+              wp.richText.registerFormatType(formator.name, formator);
+            }
+          });
+        }
+
         return wp.element.createElement(
           Fragment,
           null,
           wp.element.createElement(
             PluginSidebarMoreMenuItem,
             {
-              name: "suggestion-sidebar",
-              type: "sidebar",
-              target: "suggestion-sidebar"
+              name: 'suggestion-sidebar',
+              type: 'sidebar',
+              target: 'suggestion-sidebar'
             },
             __('Edit Mode', 'suggestion_block')
           ),
           wp.element.createElement(
             PluginSidebar,
             {
-              name: "suggestion-sidebar",
+              name: 'suggestion-sidebar',
               title: __('Edit Mode', 'suggestion_block'),
-              icon: "welcome-write-blog"
+              icon: 'welcome-write-blog'
             },
             wp.element.createElement(ToggleControl, {
               label: __('Suggestion mode'),
-              className: "suggestion-toggle",
+              className: 'suggestion-toggle',
               checked: suggestionEnable,
               onChange: function onChange(value) {
                 updateMeta({ sb_is_suggestion_mode: value });
@@ -1413,7 +1433,7 @@ var displayInitialSuggestion = true;
       }
     }, {
       key: 'componentDidUpdate',
-      value: function componentDidUpdate() {
+      value: function componentDidUpdate(prevProps) {
         if ('core/paragraph' === this.props.name) {
           var _props = this.props,
               attributes = _props.attributes,
@@ -1472,247 +1492,267 @@ var displayInitialSuggestion = true;
 
                       var diff = dmp.diff_main(beforeChangeContent[clientId], filterContent);
 
-                      var tagArray = ['strong', 'em', 'a', 's', 'code', 'span'];
-                      var matchRegex = false;
-                      var ignoreCleanUp = false;
+                      if (0 < diff.length) {
+                        var tagArray = ['strong', 'em', 'a', 's', 'code', 'span'];
+                        var matchRegex = false;
+                        var ignoreCleanUp = false;
 
-                      console.log(diff[0][1]);
-                      if ('' !== currentAttr.content) {
-                        for (var v = 0; v < diff.length; v++) {
+                        if ('' !== currentAttr.content) {
+                          for (var v = 0; v < diff.length; v++) {
 
-                          var operation = diff[v][0];
-                          var diffText = diff[v][1];
+                            var operation = diff[v][0];
+                            var diffText = diff[v][1];
 
-                          if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
-                            var nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 6) : '';
-                            if ('</del>' === nextDiffText) {
-                              if (0 === diff[v + 1][0] && diff[v - 1]) {
-                                diff[v + 1][1] = diff[v + 1][1].substring(6);
-                                diff[v - 1][1] += nextDiffText;
-                              }
-                            } else {
-                              nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 20) : '';
-                              var diffMatchPattern = /<\/del>/;
-                              var prevLastChar = diff[v - 1] ? diff[v - 1][1].slice(-3) : '';
-                              var prevTagIndex = diff[v - 1] ? diff[v - 1][1].lastIndexOf('<del') : -1;
-                              if (-1 !== prevTagIndex && ';">' === prevLastChar && diffMatchPattern.test(nextDiffText)) {
-                                var lastDelTag = diff[v - 1][1].substring(prevTagIndex);
-                                diff[v - 1][1] = diff[v - 1][1].substring(0, prevTagIndex);
-                                diff[v + 1][1] = lastDelTag + diff[v + 1][1];
-                              }
-                            }
-                          }
-
-                          var diffCurrentLastTag = diff[v][1].slice(-5);
-                          var missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
-                          var diffNextCloseTag = diff[v + 1] ? diff[v + 1][1].substring(0, 1) : '';
-                          var diffNextTagId = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
-                          var diffCommentNode = diff[v][1].slice(-8);
-                          var diffCommentLastNode = diff[v + 2] ? diff[v + 2][1].substring(0, 6) : '';
-
-                          if (('</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag) && '>' === diffNextCloseTag) {
-                            diff[v][1] += diffNextCloseTag;
-                            diff[v + 1][1] = diff[v + 1][1].substring(1);
-                            ignoreCleanUp = true;
-                          } else if ('<ins ' === diffCurrentLastTag && 'id=' === diffNextTagId) {
-                            diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrentLastTag));
-                            diff[v + 1][1] = diffCurrentLastTag + diff[v + 1][1];
-                            ignoreCleanUp = true;
-                          } else if (null !== missingCurrentLastTag) {
-                            diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missingCurrentLastTag));
-                            diff[v + 1][1] = missingCurrentLastTag + diff[v + 1][1];
-                            ignoreCleanUp = true;
-                          } else if (null !== diff[v][1].match(/<del id="[\d]{0,1}$/)) {
-                            var missDelLastTag = diff[v][1].match(/<del id="[\d]{0,1}$/);
-                            diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
-                            diff[v + 1][1] = missDelLastTag + diff[v + 1][1];
-                            ignoreCleanUp = true;
-                          } else if (null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag) {
-                            var diffNextOfNext = diff[v + 2] ? diff[v + 2][1] : '';
-                            if (1 === diffNextCloseTag.length && '' !== diffNextOfNext) {
-                              var matchDelTag = diff[v][1].match(/<del id=".*">$/);
-                              diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(matchDelTag));
-                              diff[v + 2][1] = matchDelTag + diff[v + 2][1];
-                              ignoreCleanUp = true;
-                            }
-                          } else if ('<mdspan ' === diffCommentNode && 'dat' === diffNextTagId && 'class=' === diffCommentLastNode) {
-                            diff[v + 1][0] = 0;
-                            ignoreCleanUp = true;
-                          }
-
-                          if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
-
-                            var currentDiff = diff[v][1].substring(0, 3);
-                            var prevDiff = diff[v - 1] ? diff[v - 1][1].slice(-1) : '';
-                            var nextDiff = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
-                            var currentLastdiff = diff[v][1].slice(-1);
-                            if (('ins' === currentDiff || 'del' === currentDiff) && '<' === prevDiff && ('ins' === nextDiff || 'del') && '<' === currentLastdiff) {
-                              var prevLastIndex = diff[v - 1][1].lastIndexOf(prevDiff);
-                              var currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
-                              diff[v - 1][1] = diff[v - 1][1].substring(0, prevLastIndex);
-                              diff[v][1] = prevDiff + diff[v][1].substring(0, currentLastIndex);
-                              diff[v + 1][1] = currentLastdiff + diff[v + 1][1];
-                              ignoreCleanUp = true;
-                            }
-
-                            diffText = diffText.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
-
-                            for (var i = 0; i < tagArray.length; i++) {
-                              var dynamicRegex = void 0;
-                              if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
-                                dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
-                                if ('a' === tagArray[i] && null !== diffText.match(/<a (.*)>(.*)<\/a>/)) {
-                                  break;
+                            if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
+                              var nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 6) : '';
+                              if ('</del>' === nextDiffText) {
+                                if (0 === diff[v + 1][0] && diff[v - 1]) {
+                                  diff[v + 1][1] = diff[v + 1][1].substring(6);
+                                  diff[v - 1][1] += nextDiffText;
                                 }
                               } else {
-                                dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                                nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 20) : '';
+                                var diffMatchPattern = /<\/del>/;
+                                var prevLastChar = diff[v - 1] ? diff[v - 1][1].slice(-3) : '';
+                                var prevTagIndex = diff[v - 1] ? diff[v - 1][1].lastIndexOf('<del') : -1;
+                                if (-1 !== prevTagIndex && ';">' === prevLastChar && diffMatchPattern.test(nextDiffText)) {
+                                  var lastDelTag = diff[v - 1][1].substring(prevTagIndex);
+                                  diff[v - 1][1] = diff[v - 1][1].substring(0, prevTagIndex);
+                                  diff[v + 1][1] = lastDelTag + diff[v + 1][1];
+                                }
                               }
+                            }
 
-                              var regex = new RegExp(dynamicRegex, "g");
-                              if (regex.test(diffText)) {
-                                matchRegex = true;
-                                break;
+                            var diffCurrentLastTag = diff[v][1].slice(-5);
+                            var missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
+                            var diffNextCloseTag = diff[v + 1] ? diff[v + 1][1].substring(0, 1) : '';
+                            var diffNextTagId = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
+                            var diffCommentNode = diff[v][1].slice(-8);
+                            var diffCommentLastNode = diff[v + 2] ? diff[v + 2][1].substring(0, 6) : '';
+
+                            if (('</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag) && '>' === diffNextCloseTag) {
+                              diff[v][1] += diffNextCloseTag;
+                              diff[v + 1][1] = diff[v + 1][1].substring(1);
+                              ignoreCleanUp = true;
+                            } else if ('<ins ' === diffCurrentLastTag && 'id=' === diffNextTagId) {
+                              diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrentLastTag));
+                              diff[v + 1][1] = diffCurrentLastTag + diff[v + 1][1];
+                              ignoreCleanUp = true;
+                            } else if (null !== missingCurrentLastTag) {
+                              diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missingCurrentLastTag));
+                              diff[v + 1][1] = missingCurrentLastTag + diff[v + 1][1];
+                              ignoreCleanUp = true;
+                            } else if (null !== diff[v][1].match(/<del id="[\d]{0,1}$/)) {
+                              var missDelLastTag = diff[v][1].match(/<del id="[\d]{0,1}$/);
+                              diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
+                              diff[v + 1][1] = missDelLastTag + diff[v + 1][1];
+                              ignoreCleanUp = true;
+                            } else if (null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag) {
+                              var diffNextOfNext = diff[v + 2] ? diff[v + 2][1] : '';
+                              if (1 === diffNextCloseTag.length && '' !== diffNextOfNext) {
+                                var matchDelTag = diff[v][1].match(/<del id=".*">$/);
+                                diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(matchDelTag));
+                                diff[v + 2][1] = matchDelTag + diff[v + 2][1];
+                                ignoreCleanUp = true;
+                              }
+                            } else if ('<mdspan ' === diffCommentNode && 'dat' === diffNextTagId && 'class=' === diffCommentLastNode) {
+                              diff[v + 1][0] = 0;
+                              ignoreCleanUp = true;
+                            } else if (' target=' === diff[v][1].substring(0, 8) && 'noopener"' === diff[v][1].slice(-9) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
+                              diff[v][0] = 0;
+                              diff[v][1] = __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation ? diff[v][1] : '';
+                            }
+
+                            if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
+
+                              var currentDiff = diff[v][1].substring(0, 3);
+                              var prevDiff = diff[v - 1] ? diff[v - 1][1].slice(-1) : '';
+                              var nextDiff = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
+                              var currentLastdiff = diff[v][1].slice(-1);
+                              if (('ins' === currentDiff || 'del' === currentDiff) && '<' === prevDiff && ('ins' === nextDiff || 'del') && '<' === currentLastdiff) {
+                                var prevLastIndex = diff[v - 1][1].lastIndexOf(prevDiff);
+                                var currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
+                                diff[v - 1][1] = diff[v - 1][1].substring(0, prevLastIndex);
+                                diff[v][1] = prevDiff + diff[v][1].substring(0, currentLastIndex);
+                                diff[v + 1][1] = currentLastdiff + diff[v + 1][1];
+                                ignoreCleanUp = true;
+                              } else if (null !== diff[v][1].match(/<mdspan (.*)">$/)) {
+                                var nextMdSpan = diff[v + 2] ? diff[v + 2][1] : '';
+                                if ('</mdspan>' === nextMdSpan) {
+                                  diff[v][0] = 0;
+                                  diff[v][1] = '';
+                                  diff[v + 2][0] = 0;
+                                  diff[v + 2][1] = '';
+                                }
+                              }
+                              diffText = diffText.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
+
+                              for (var i = 0; i < tagArray.length; i++) {
+                                var dynamicRegex = void 0;
+                                if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
+                                  var tagMatchPattern = 'a' === tagArray[i] ? '<\/' + tagArray[i] + '>(.*)<' + tagArray[i] + ' (.*)>$' : '<\/' + tagArray[i] + '>(.*)<' + tagArray[i] + '>$';
+                                  var tagMatchPatternRegex = new RegExp(tagMatchPattern);
+                                  if (null !== diff[v][1].match(tagMatchPatternRegex)) {
+                                    var replaceTagPatter = '<\/?' + tagArray[i] + '[^>]*>';
+                                    var replaceTagRegex = new RegExp(replaceTagPatter, 'g');
+                                    diff[v][1] = diff[v][1].replace(replaceTagRegex, '');
+                                  }
+                                  dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
+                                  var fullTagRegex = 'a' === tagArray[i] ? '<' + tagArray[i] + ' (.*)>(.*)<\/' + tagArray[i] + '>' : '<' + tagArray[i] + '>(.*)<\/' + tagArray[i] + '>';
+                                  var fullTagFinalRegex = new RegExp(fullTagRegex);
+                                  if (null !== diffText.match(fullTagFinalRegex)) {
+                                    break;
+                                  }
+                                } else {
+                                  dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                                }
+
+                                var regex = new RegExp(dynamicRegex, 'g');
+                                if (regex.test(diffText)) {
+                                  matchRegex = true;
+                                  break;
+                                }
                               }
                             }
                           }
                         }
-                      }
-                      if (!matchRegex && !ignoreCleanUp) {
-                        dmp.diff_cleanupSemantic(diff);
-                      }
-
-                      var html = [];
-                      var updateOldContent = false;
-                      var isFormating = false;
-                      var nextFomatingIndex = 0;
-
-                      var _loop = function _loop(x) {
-                        var op = diff[x][0];
-                        var text = diff[x][1];
-                        var tagFound = false;
-                        if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttr.content) {
-                          text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
-                          if (!isFormating) {
-                            tagArray.forEach(function (tagName) {
-                              var dynamicRegex = void 0;
-                              if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === op) {
-                                dynamicRegex = "<(" + tagName + "|\/" + tagName + ")";
-                              } else {
-                                dynamicRegex = 'a' === tagName ? "a [^>]*>" : "(" + tagName + "|\/" + tagName + ")>";
-                              }
-
-                              var regex = new RegExp(dynamicRegex, "g");
-                              if (regex.test(text)) {
-                                tagFound = true;
-                              }
-                            });
-                          }
+                        if (!matchRegex && !ignoreCleanUp) {
+                          dmp.diff_cleanupSemantic(diff);
                         }
 
-                        var uniqueId = Math.floor(Math.random() * 100).toString() + Date.now().toString();
-                        var today = new Date();
-                        var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-                        var time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
-                        var dateTime = date + ' ' + time;
+                        var html = [];
+                        var updateOldContent = false;
+                        var isFormating = false;
+                        var nextFomatingIndex = 0;
+                        for (var x = 0; x < diff.length; x++) {
+                          var op = diff[x][0];
+                          var text = diff[x][1];
+                          var tagFound = false;
+                          if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttr.content) {
+                            text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
+                            if (!isFormating) {
+                              for (var h = 0; h < tagArray.length; h++) {
+                                var _fullTagRegex = 'a' === tagArray[h] ? '<' + tagArray[h] + ' (.*)>(.*)<\/' + tagArray[h] + '>' : '<' + tagArray[h] + '>(.*)<\/' + tagArray[h] + '>';
+                                var _fullTagFinalRegex = new RegExp(_fullTagRegex);
+                                if (null !== text.match(_fullTagFinalRegex)) {
+                                  break;
+                                }
+                                var _dynamicRegex = void 0;
+                                if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === op) {
+                                  _dynamicRegex = "<(" + tagArray[h] + "|\/" + tagArray[h] + ")";
+                                } else {
+                                  _dynamicRegex = 'a' === tagArray[h] ? "a [^>]*>" : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
+                                }
 
-                        switch (op) {
-                          case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT:
-                            if (!isFormating && tagFound) {
-                              isFormating = true;
-                              nextFomatingIndex = x + 2;
-                              diff[x + 1][0] = 1;
-                              html[x] = text;
+                                var _regex = new RegExp(_dynamicRegex, "g");
+                                if (_regex.test(text)) {
+                                  tagFound = true;
+                                }
+                              }
+                            }
+                          }
+
+                          var uniqueId = Math.floor(Math.random() * 100).toString() + Date.now().toString();
+                          var today = new Date();
+                          var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+                          var time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
+                          var dateTime = date + ' ' + time;
+
+                          switch (op) {
+                            case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT:
+                              if (!isFormating && tagFound) {
+                                isFormating = true;
+                                nextFomatingIndex = x + 2;
+                                diff[x + 1][0] = 1;
+                                html[x] = text;
+                                updateOldContent = true;
+                              } else if (isFormating && nextFomatingIndex === x) {
+                                isFormating = false;
+                                nextFomatingIndex = 0;
+                                html[x] = text;
+                              } else {
+
+                                html[x] = '<ins id="' + uniqueId + '" style="color: #008000;">' + text + '</ins>';
+                                var tempObject = {};
+                                tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'Add', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                if (0 === suggestionHistory.length) {
+                                  suggestionHistory = {};
+                                  suggestionHistory[objClientId] = tempObject;
+                                } else if (!suggestionHistory[objClientId]) {
+                                  suggestionHistory[objClientId] = tempObject;
+                                } else {
+                                  Object.assign(suggestionHistory[objClientId], tempObject);
+                                }
+                              }
+                              break;
+                            case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_DELETE:
+                              if (!isFormating && tagFound) {
+                                isFormating = true;
+                                nextFomatingIndex = x + 2;
+                              } else if (isFormating && nextFomatingIndex === x) {
+                                isFormating = false;
+                                nextFomatingIndex = 0;
+                              } else {
+                                html[x] = '<del id="' + uniqueId + '" style="color: #ff0000;">' + text + '</del>';
+                                var _tempObject = {};
+                                _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'Delete', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                if (0 === suggestionHistory.length) {
+                                  suggestionHistory = {};
+                                  suggestionHistory[objClientId] = _tempObject;
+                                } else if (!suggestionHistory[objClientId]) {
+                                  suggestionHistory[objClientId] = _tempObject;
+                                } else {
+                                  Object.assign(suggestionHistory[objClientId], _tempObject);
+                                }
+                              }
                               updateOldContent = true;
-                            } else if (isFormating && nextFomatingIndex === x) {
-                              isFormating = false;
-                              nextFomatingIndex = 0;
+                              break;
+                            case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL:
                               html[x] = text;
-                            } else {
-
-                              html[x] = '<ins id="' + uniqueId + '" style="color: #008000;">' + text + '</ins>';
-                              var tempObject = {};
-                              tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'Add', 'text': text, 'time': dateTime }];
-                              if (0 === suggestionHistory.length) {
-                                suggestionHistory = {};
-                                suggestionHistory[objClientId] = tempObject;
-                              } else if (!suggestionHistory[objClientId]) {
-                                suggestionHistory[objClientId] = tempObject;
-                              } else {
-                                Object.assign(suggestionHistory[objClientId], tempObject);
-                              }
-                            }
-                            break;
-                          case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_DELETE:
-                            if (!isFormating && tagFound) {
-                              isFormating = true;
-                              nextFomatingIndex = x + 2;
-                            } else if (isFormating && nextFomatingIndex === x) {
-                              isFormating = false;
-                              nextFomatingIndex = 0;
-                            } else {
-                              html[x] = '<del id="' + uniqueId + '" style="color: #ff0000;">' + text + '</del>';
-                              var _tempObject = {};
-                              _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'Delete', 'text': text, 'time': dateTime }];
-                              if (0 === suggestionHistory.length) {
-                                suggestionHistory = {};
-                                suggestionHistory[objClientId] = _tempObject;
-                              } else if (!suggestionHistory[objClientId]) {
-                                suggestionHistory[objClientId] = _tempObject;
-                              } else {
-                                Object.assign(suggestionHistory[objClientId], _tempObject);
-                              }
-                            }
-                            updateOldContent = true;
-                            break;
-                          case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL:
-                            html[x] = text;
-                            break;
-                        }
-                      };
-
-                      for (var x = 0; x < diff.length; x++) {
-                        _loop(x);
-                      }
-                      var finalDiff = html.join('');
-
-                      if (updateOldContent) {
-                        beforeChangeContent[clientId] = finalDiff;
-                      }
-                      currentNewContent = finalDiff;
-
-                      if (suggestionHistory[objClientId]) {
-                        var suggestionChildKey = Object.keys(suggestionHistory[objClientId]);
-
-                        var clientIdNode = document.getElementById(objClientId);
-                        if (!clientIdNode) {
-                          clientIdNode = document.createElement('div');
-                          clientIdNode.setAttribute('id', objClientId);
-                        } else {
-                          clientIdNode.innerHTML = '';
-                        }
-
-                        for (var _i = 0; _i < suggestionChildKey.length; _i++) {
-                          var findItem = 'id="' + suggestionChildKey[_i] + '"';
-
-                          if (-1 === finalDiff.indexOf(findItem)) {
-                            delete suggestionHistory[objClientId][suggestionChildKey[_i]];
-                          } else {
-                            var newNode = document.createElement('div');
-                            newNode.setAttribute('id', 'sg' + suggestionChildKey[_i]);
-                            newNode.setAttribute('data-sid', suggestionChildKey[_i]);
-                            newNode.setAttribute('class', 'cls-board-outer'); // need to change class
-                            clientIdNode.appendChild(newNode);
-
-                            var referenceNode = document.getElementById('md-suggestion-comments');
-                            referenceNode.appendChild(clientIdNode);
-
-                            ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId, suggestionID: suggestionChildKey[_i], suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i]] }), document.getElementById('sg' + suggestionChildKey[_i]));
+                              break;
                           }
                         }
-                      }
-                      if ('' !== finalDiff) {
-                        setAttributes({ content: finalDiff });
-                        wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
+                        var finalDiff = html.join('');
+
+                        if (updateOldContent) {
+                          beforeChangeContent[clientId] = finalDiff;
+                        }
+                        currentNewContent = finalDiff;
+
+                        if (suggestionHistory[objClientId]) {
+                          var suggestionChildKey = Object.keys(suggestionHistory[objClientId]);
+
+                          var clientIdNode = document.getElementById(objClientId);
+                          if (!clientIdNode) {
+                            clientIdNode = document.createElement('div');
+                            clientIdNode.setAttribute('id', objClientId);
+                          } else {
+                            clientIdNode.innerHTML = '';
+                          }
+
+                          for (var _i = 0; _i < suggestionChildKey.length; _i++) {
+                            var findItem = 'id="' + suggestionChildKey[_i] + '"';
+
+                            if (-1 === finalDiff.indexOf(findItem)) {
+                              delete suggestionHistory[objClientId][suggestionChildKey[_i]];
+                            } else {
+                              var newNode = document.createElement('div');
+                              newNode.setAttribute('id', 'sg' + suggestionChildKey[_i]);
+                              newNode.setAttribute('data-sid', suggestionChildKey[_i]);
+                              newNode.setAttribute('class', 'cls-board-outer'); // need to change class
+                              clientIdNode.appendChild(newNode);
+
+                              var referenceNode = document.getElementById('md-suggestion-comments');
+                              referenceNode.appendChild(clientIdNode);
+
+                              ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId, suggestionID: suggestionChildKey[_i], suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i]] }), document.getElementById('sg' + suggestionChildKey[_i]));
+                            }
+                          }
+                        }
+                        if ('' !== finalDiff) {
+                          setAttributes({ content: finalDiff });
+                          wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
+                        }
                       }
                     }
                   }

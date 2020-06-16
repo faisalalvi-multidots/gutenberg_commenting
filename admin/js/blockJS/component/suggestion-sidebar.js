@@ -6,7 +6,14 @@
   const { __ } = wpI18n;
   const { registerPlugin } = wpPlugins;
   const { ToggleControl } = wpComponents;
-
+  const formatTypes = wp.data.select( 'core/rich-text' ).getFormatTypes();
+  let toggleFormatTypes = [];
+  let toogleFormatFlag = false;
+  formatTypes.map(( formator ) => {
+    if ( 'core/link' === formator.name || 'core/text-color' === formator.name || 'core/image' === formator.name ) {
+      toggleFormatTypes.push(formator);
+    }
+  });
   class SBSidebar extends Component {
 
     render() {
@@ -17,6 +24,17 @@
         } = {},
         updateMeta,
       } = this.props;
+
+      if ( toogleFormatFlag !== suggestionEnable ) {
+        toogleFormatFlag = suggestionEnable;
+        toggleFormatTypes.map( (formator) => {
+          if ( suggestionEnable ) {
+            wp.richText.unregisterFormatType(formator.name);
+          } else {
+            wp.richText.registerFormatType(formator.name, formator);
+          }
+        });
+      }
 
       return (
         <Fragment>
