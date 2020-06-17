@@ -307,6 +307,10 @@ class Commenting_block_Admin {
 			'wp-edit-post',
 		), $this->version, true );
 
+		global $wp_roles;
+		$current_user = wp_get_current_user();
+		wp_localize_script( 'suggestion-block', 'suggestionBlock', array( 'userRole' => $wp_roles->roles[ $current_user->roles[0] ][ 'name' ] ) );
+
 		wp_enqueue_script( 'jquery-ui-draggable' );
 		wp_enqueue_script( 'jquery-ui-droppable' );
 

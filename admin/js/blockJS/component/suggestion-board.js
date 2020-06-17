@@ -2,7 +2,7 @@ import SuggestionComment from "./suggestion-comment";
 
 const {removeFormat} = wp.richText;
 const {Fragment} = wp.element;
-
+let currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
 export default class SuggestionBoard extends React.Component {
 
   constructor(props) {
@@ -57,7 +57,7 @@ export default class SuggestionBoard extends React.Component {
       let date = today.getFullYear() + '-' + ( today.getMonth() + 1 ) + '-' + today.getDate();
       let time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
       let dateTime = date + ' ' + time;
-      let newCommentInfo = {'name' : userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'reply', 'text': newText, 'time': dateTime};
+      let newCommentInfo = {'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'reply', 'mode': 'Reply', 'text': newText, 'time': dateTime};
       suggestionHistory[oldClientId][suggestionID].push(newCommentInfo);
       wp.data.dispatch('core/editor').editPost({meta: {sb_suggestion_history: JSON.stringify(suggestionHistory) } });
       jQuery('#' + currentTextID).val('');
@@ -68,7 +68,7 @@ export default class SuggestionBoard extends React.Component {
 
   }
 
-  displayComments(text, i) {
+  displayComments(data, i) {
     const { suggestionID } = this.props;
 
     return (
@@ -77,21 +77,22 @@ export default class SuggestionBoard extends React.Component {
         index={i}
         removeCommentFromBoard={this.removeComment}
         updateCommentFromBoard={this.updateComment}
-        userName={text.name}
-        dateTime={text.time}
-        profileURL={text.avtar}
-        userID={text.uid}
-        action={text.action}
+        userName={data.name}
+        dateTime={data.time}
+        profileURL={data.avtar}
+        userID={data.uid}
+        userRole={data.role}
+        action={data.action}
         suggestionID={suggestionID}
         clientId={this.props.clientId}
       >
-        { 'reply' === text.action &&
-          text.text
+        { 'reply' === data.action &&
+          data.text
         }
-        { 'reply' !== text.action &&
+        { 'reply' !== data.action &&
           <Fragment>
-            <strong>{text.action}: </strong>
-            {text.text}
+            <strong>{data.action}: </strong>
+            {data.text}
           </Fragment>
         }
       </SuggestionComment>

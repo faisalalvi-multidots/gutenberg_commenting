@@ -52,16 +52,23 @@ export default class SuggestionComment extends React.Component {
         suggestionHistory = JSON.parse(suggestionHistory);
         let findItem = 'id="' + suggestionID + '"';
         if ( suggestionHistory[oldClientId][suggestionID] && -1 !== content.indexOf(findItem) ) {
+          let mode = suggestionHistory[oldClientId][suggestionID][0].mode;
           let action = suggestionHistory[oldClientId][suggestionID][0].action;
           let tempDiv = document.createElement('div');
           tempDiv.innerHTML = content;
-          let childElements = 'add' === action.toLowerCase() ? tempDiv.getElementsByTagName('ins') : tempDiv.getElementsByTagName('del');
+          let childElements = 'add' === mode.toLowerCase() ? tempDiv.getElementsByTagName('ins') : tempDiv.getElementsByTagName('del');
           for ( let i = 0; i < childElements.length; i++ ) {
             if ( undefined !== childElements[i].id && suggestionID === childElements[i].id ) {
-              if ( 'add' === action.toLowerCase() ) {
-                tempDiv.removeChild(childElements[i]);
+              if ( 'add' === mode.toLowerCase() ) {
+                if ( 'format' === action.toLowerCase() ) {
+                  childElements[i].parentNode.parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i].parentNode);
+                  //tempDiv.removeChild(childElements[i]);
+                } else {
+                  childElements[i].parentNode.removeChild(childElements[i]);
+                }
               } else {
-                tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                //tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                childElements[i].parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
               }
               delete suggestionHistory[oldClientId][suggestionID];
               let finalContent = tempDiv.innerHTML;
@@ -90,16 +97,23 @@ export default class SuggestionComment extends React.Component {
         suggestionHistory = JSON.parse(suggestionHistory);
         let findItem = 'id="' + suggestionID + '"';
         if ( suggestionHistory[oldClientId][suggestionID] && -1 !== content.indexOf(findItem) ) {
+          let mode = suggestionHistory[oldClientId][suggestionID][0].mode;
           let action = suggestionHistory[oldClientId][suggestionID][0].action;
           let tempDiv = document.createElement('div');
           tempDiv.innerHTML = content;
-          let childElements = 'add' === action.toLowerCase() ? tempDiv.getElementsByTagName('ins') : tempDiv.getElementsByTagName('del');
+          let childElements = 'add' === mode.toLowerCase() ? tempDiv.getElementsByTagName('ins') : tempDiv.getElementsByTagName('del');
           for ( let i = 0; i < childElements.length; i++ ) {
             if ( undefined !== childElements[i].id && suggestionID === childElements[i].id ) {
-              if ( 'add' === action.toLowerCase() ) {
-                tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+              if ( 'add' === mode.toLowerCase() ) {
+                //tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                childElements[i].parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
               } else {
-                tempDiv.removeChild(childElements[i]);
+                if ( 'format' === action.toLowerCase() ) {
+                  childElements[i].parentNode.parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i].parentNode);
+                } else {
+                  childElements[i].parentNode.removeChild(childElements[i]);
+                }
+
               }
               delete suggestionHistory[oldClientId][suggestionID];
               let finalContent = tempDiv.innerHTML;
@@ -119,7 +133,7 @@ export default class SuggestionComment extends React.Component {
   }
 
   renderNormalMode() {
-    const { userName, profileURL, dateTime, action, userID, index } = this.props;
+    const { userName, profileURL, dateTime, action, userID, userRole, index } = this.props;
 
     let owner = wp.data.select("core").getCurrentUser().id;
     return (
@@ -129,6 +143,7 @@ export default class SuggestionComment extends React.Component {
           <div className="commenter-name-time">
             <div className="commenter-name">{userName}</div>
             <div className="comment-time">{dateTime}</div>
+            <div className="commenter-role">{userRole}</div>
           </div>
           {index === 0 &&
             <div className="suggest-box-action">

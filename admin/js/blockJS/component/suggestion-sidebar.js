@@ -6,14 +6,7 @@
   const { __ } = wpI18n;
   const { registerPlugin } = wpPlugins;
   const { ToggleControl } = wpComponents;
-  const formatTypes = wp.data.select( 'core/rich-text' ).getFormatTypes();
-  let toggleFormatTypes = [];
   let toogleFormatFlag = false;
-  formatTypes.map(( formator ) => {
-    if ( 'core/link' === formator.name || 'core/text-color' === formator.name || 'core/image' === formator.name ) {
-      toggleFormatTypes.push(formator);
-    }
-  });
   class SBSidebar extends Component {
 
     render() {
@@ -27,13 +20,21 @@
 
       if ( toogleFormatFlag !== suggestionEnable ) {
         toogleFormatFlag = suggestionEnable;
-        toggleFormatTypes.map( (formator) => {
-          if ( suggestionEnable ) {
-            wp.richText.unregisterFormatType(formator.name);
+
+        let parentElement = document.getElementById('editor');
+
+        if (parentElement.classList) {
+          parentElement.classList.toggle('suggestion-mode');
+        } else {
+          let classes = parentElement.className.split(' ');
+          let index = classes.indexOf('suggestion-mode');
+          if (index >= 0) {
+            classes.splice(index, 1);
           } else {
-            wp.richText.registerFormatType(formator.name, formator);
+            classes.push('suggestion-mode');
+            parentElement.className = classes.join(' ');
           }
-        });
+        }
       }
 
       return (

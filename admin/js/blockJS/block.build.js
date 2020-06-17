@@ -1250,14 +1250,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   var registerPlugin = wpPlugins.registerPlugin;
   var ToggleControl = wpComponents.ToggleControl;
 
-  var formatTypes = wp.data.select('core/rich-text').getFormatTypes();
-  var toggleFormatTypes = [];
   var toogleFormatFlag = false;
-  formatTypes.map(function (formator) {
-    if ('core/link' === formator.name || 'core/text-color' === formator.name || 'core/image' === formator.name) {
-      toggleFormatTypes.push(formator);
-    }
-  });
 
   var SBSidebar = function (_Component) {
     _inherits(SBSidebar, _Component);
@@ -1281,13 +1274,21 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
         if (toogleFormatFlag !== suggestionEnable) {
           toogleFormatFlag = suggestionEnable;
-          toggleFormatTypes.map(function (formator) {
-            if (suggestionEnable) {
-              wp.richText.unregisterFormatType(formator.name);
+
+          var parentElement = document.getElementById('editor');
+
+          if (parentElement.classList) {
+            parentElement.classList.toggle('suggestion-mode');
+          } else {
+            var classes = parentElement.className.split(' ');
+            var index = classes.indexOf('suggestion-mode');
+            if (index >= 0) {
+              classes.splice(index, 1);
             } else {
-              wp.richText.registerFormatType(formator.name, formator);
+              classes.push('suggestion-mode');
+              parentElement.className = classes.join(' ');
             }
-          });
+          }
         }
 
         return wp.element.createElement(
@@ -1387,6 +1388,7 @@ var beforeChangeContent = {};
 var currentNewContent = '';
 var loadInitialSuggestion = [];
 var displayInitialSuggestion = true;
+var currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
 
 /* harmony default export */ __webpack_exports__["a"] = (createHigherOrderComponent(function (BlockEdit) {
   return function (_Component) {
@@ -1449,9 +1451,32 @@ var displayInitialSuggestion = true;
             if (wp.data.select('core/editor').getEditedPostAttribute('meta')['sb_is_suggestion_mode']) {
               var editRecord = wp.data.select('core').getUndoEdit();
               var currentBlockIndex = select('core/block-editor').getBlockIndex(clientId);
+              var finalBlockProps = void 0;
               if (editRecord && editRecord.edits && editRecord.edits.blocks) {
-                if (editRecord.edits.blocks[currentBlockIndex] && editRecord.edits.blocks[currentBlockIndex].name === 'core/paragraph') {
-                  var attr = editRecord.edits.blocks[currentBlockIndex].attributes;
+                if (-1 === currentBlockIndex) {
+                  var blockParents = wp.data.select('core/block-editor').getBlockParents(clientId);
+                  if (0 < blockParents.length) {
+                    for (var b = 0; b < blockParents.length; b++) {
+                      if (0 === b) {
+                        finalBlockProps = editRecord.edits.blocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b])];
+                        if (1 === blockParents.length) {
+                          finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
+                          console.log(finalBlockProps);
+                        }
+                      } else if (b + 1 === blockParents.length) {
+                        finalBlockProps = finalBlockProps.innerBlocks ? finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])] : finalBlockProps.innerBlocks;
+                        finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
+                        console.log(finalBlockProps);
+                      } else {
+                        finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])];
+                      }
+                    }
+                  }
+                } else {
+                  finalBlockProps = editRecord.edits.blocks[currentBlockIndex];
+                }
+                if (finalBlockProps.name === 'core/paragraph') {
+                  var attr = finalBlockProps.attributes;
                   var currentAttr = wp.data.select('core/block-editor').getBlockAttributes(clientId);
                   if ('' === currentAttr.content || currentNewContent !== currentAttr.content) {
                     displayInitialSuggestion = false;
@@ -1459,7 +1484,6 @@ var displayInitialSuggestion = true;
                       beforeChangeContent[clientId] = attr.content;
                     }
                     if (currentAttr.content !== attr.content) {
-
                       var currentUser = wp.data.select('core').getCurrentUser().id;
                       var userName = wp.data.select('core').getCurrentUser().name;
                       var userAvtars = wp.data.select('core').getCurrentUser().avatar_urls;
@@ -1494,6 +1518,7 @@ var displayInitialSuggestion = true;
 
                       if (0 < diff.length) {
                         var tagArray = ['strong', 'em', 'a', 's', 'code', 'span'];
+                        var formatName = { 'strong': 'bold', 'em': 'italic', 's': 'strikethrough', 'span': 'underline', 'code': 'code', 'a': 'link' };
                         var matchRegex = false;
                         var ignoreCleanUp = false;
 
@@ -1624,6 +1649,7 @@ var displayInitialSuggestion = true;
                         var updateOldContent = false;
                         var isFormating = false;
                         var nextFomatingIndex = 0;
+                        var formatTagName = '';
                         for (var x = 0; x < diff.length; x++) {
                           var op = diff[x][0];
                           var text = diff[x][1];
@@ -1647,6 +1673,8 @@ var displayInitialSuggestion = true;
                                 var _regex = new RegExp(_dynamicRegex, "g");
                                 if (_regex.test(text)) {
                                   tagFound = true;
+                                  formatTagName = tagArray[h];
+                                  break;
                                 }
                               }
                             }
@@ -1671,10 +1699,14 @@ var displayInitialSuggestion = true;
                                 nextFomatingIndex = 0;
                                 html[x] = text;
                               } else {
-
                                 html[x] = '<ins id="' + uniqueId + '" style="color: #008000;">' + text + '</ins>';
                                 var tempObject = {};
-                                tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'Add', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                if (isFormating && '' !== formatTagName) {
+                                  tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime }];
+                                  formatTagName = '';
+                                } else {
+                                  tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Add', 'mode': 'Add', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                }
                                 if (0 === suggestionHistory.length) {
                                   suggestionHistory = {};
                                   suggestionHistory[objClientId] = tempObject;
@@ -1688,14 +1720,22 @@ var displayInitialSuggestion = true;
                             case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_DELETE:
                               if (!isFormating && tagFound) {
                                 isFormating = true;
+                                html[x] = text;
+                                diff[x + 1][0] = -1;
                                 nextFomatingIndex = x + 2;
                               } else if (isFormating && nextFomatingIndex === x) {
                                 isFormating = false;
+                                html[x] = text;
                                 nextFomatingIndex = 0;
                               } else {
                                 html[x] = '<del id="' + uniqueId + '" style="color: #ff0000;">' + text + '</del>';
                                 var _tempObject = {};
-                                _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'Delete', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                if (isFormating && '' !== formatTagName) {
+                                  _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Delete', 'text': formatName[formatTagName], 'time': dateTime }];
+                                  formatTagName = '';
+                                } else {
+                                  _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Delete', 'mode': 'Delete', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                }
                                 if (0 === suggestionHistory.length) {
                                   suggestionHistory = {};
                                   suggestionHistory[objClientId] = _tempObject;
@@ -1743,6 +1783,10 @@ var displayInitialSuggestion = true;
                               clientIdNode.appendChild(newNode);
 
                               var referenceNode = document.getElementById('md-suggestion-comments');
+                              if (null === referenceNode) {
+                                this.handleLoad();
+                                referenceNode = document.getElementById('md-suggestion-comments');
+                              }
                               referenceNode.appendChild(clientIdNode);
 
                               ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId, suggestionID: suggestionChildKey[_i], suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i]] }), document.getElementById('sg' + suggestionChildKey[_i]));
@@ -1796,7 +1840,8 @@ var displayInitialSuggestion = true;
         var _props2 = this.props,
             attributes = _props2.attributes,
             clientId = _props2.clientId;
-        var oldClientId = attributes.oldClientId;
+        var oldClientId = attributes.oldClientId,
+            content = attributes.content;
 
 
         var suggestionChildKey = Object.keys(displayHistory[oldClientId]);
@@ -1807,15 +1852,21 @@ var displayInitialSuggestion = true;
         }
 
         for (var i = 0; i < suggestionChildKey.length; i++) {
-          var newNode = document.createElement('div');
-          newNode.setAttribute('id', 'sg' + suggestionChildKey[i]);
-          newNode.setAttribute('data-sid', suggestionChildKey[i]);
-          newNode.setAttribute('class', 'cls-board-outer');
-          clientIdNode.appendChild(newNode);
-          commentNode.appendChild(clientIdNode);
+          var findItem = 'id="' + suggestionChildKey[i] + '"';
 
+          if (-1 === content.indexOf(findItem)) {
+            delete displayHistory[oldClientId][suggestionChildKey[i]];
+          } else {
+            var newNode = document.createElement('div');
+            newNode.setAttribute('id', 'sg' + suggestionChildKey[i]);
+            newNode.setAttribute('data-sid', suggestionChildKey[i]);
+            newNode.setAttribute('class', 'cls-board-outer');
+            clientIdNode.appendChild(newNode);
+            commentNode.appendChild(clientIdNode);
+          }
           ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: oldClientId, clientId: clientId, suggestionID: suggestionChildKey[i], suggestedOnText: displayHistory[oldClientId][suggestionChildKey[i]] }), document.getElementById('sg' + suggestionChildKey[i]));
         }
+        wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(displayHistory) } });
       }
     }, {
       key: 'render',
@@ -1846,6 +1897,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var removeFormat = wp.richText.removeFormat;
 var Fragment = wp.element.Fragment;
+
+var currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
 
 var SuggestionBoard = function (_React$Component) {
   _inherits(SuggestionBoard, _React$Component);
@@ -1918,7 +1971,7 @@ var SuggestionBoard = function (_React$Component) {
         var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
         var time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
         var dateTime = date + ' ' + time;
-        var newCommentInfo = { 'name': userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'reply', 'text': newText, 'time': dateTime };
+        var newCommentInfo = { 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'reply', 'mode': 'Reply', 'text': newText, 'time': dateTime };
         suggestionHistory[oldClientId][suggestionID].push(newCommentInfo);
         wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
         jQuery('#' + currentTextID).val('');
@@ -1929,7 +1982,7 @@ var SuggestionBoard = function (_React$Component) {
     }
   }, {
     key: 'displayComments',
-    value: function displayComments(text, i) {
+    value: function displayComments(data, i) {
       var suggestionID = this.props.suggestionID;
 
 
@@ -1940,25 +1993,26 @@ var SuggestionBoard = function (_React$Component) {
           index: i,
           removeCommentFromBoard: this.removeComment,
           updateCommentFromBoard: this.updateComment,
-          userName: text.name,
-          dateTime: text.time,
-          profileURL: text.avtar,
-          userID: text.uid,
-          action: text.action,
+          userName: data.name,
+          dateTime: data.time,
+          profileURL: data.avtar,
+          userID: data.uid,
+          userRole: data.role,
+          action: data.action,
           suggestionID: suggestionID,
           clientId: this.props.clientId
         },
-        'reply' === text.action && text.text,
-        'reply' !== text.action && wp.element.createElement(
+        'reply' === data.action && data.text,
+        'reply' !== data.action && wp.element.createElement(
           Fragment,
           null,
           wp.element.createElement(
             'strong',
             null,
-            text.action,
+            data.action,
             ': '
           ),
-          text.text
+          data.text
         )
       );
     }
@@ -2079,16 +2133,23 @@ var SuggestionComment = function (_React$Component) {
           suggestionHistory = JSON.parse(suggestionHistory);
           var findItem = 'id="' + suggestionID + '"';
           if (suggestionHistory[oldClientId][suggestionID] && -1 !== content.indexOf(findItem)) {
+            var mode = suggestionHistory[oldClientId][suggestionID][0].mode;
             var action = suggestionHistory[oldClientId][suggestionID][0].action;
             var tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
-            var childElements = 'add' === action.toLowerCase() ? tempDiv.getElementsByTagName('ins') : tempDiv.getElementsByTagName('del');
+            var childElements = 'add' === mode.toLowerCase() ? tempDiv.getElementsByTagName('ins') : tempDiv.getElementsByTagName('del');
             for (var i = 0; i < childElements.length; i++) {
               if (undefined !== childElements[i].id && suggestionID === childElements[i].id) {
-                if ('add' === action.toLowerCase()) {
-                  tempDiv.removeChild(childElements[i]);
+                if ('add' === mode.toLowerCase()) {
+                  if ('format' === action.toLowerCase()) {
+                    childElements[i].parentNode.parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i].parentNode);
+                    //tempDiv.removeChild(childElements[i]);
+                  } else {
+                    childElements[i].parentNode.removeChild(childElements[i]);
+                  }
                 } else {
-                  tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                  //tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                  childElements[i].parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
                 }
                 delete suggestionHistory[oldClientId][suggestionID];
                 var finalContent = tempDiv.innerHTML;
@@ -2123,16 +2184,22 @@ var SuggestionComment = function (_React$Component) {
           suggestionHistory = JSON.parse(suggestionHistory);
           var findItem = 'id="' + suggestionID + '"';
           if (suggestionHistory[oldClientId][suggestionID] && -1 !== content.indexOf(findItem)) {
+            var mode = suggestionHistory[oldClientId][suggestionID][0].mode;
             var action = suggestionHistory[oldClientId][suggestionID][0].action;
             var tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
-            var childElements = 'add' === action.toLowerCase() ? tempDiv.getElementsByTagName('ins') : tempDiv.getElementsByTagName('del');
+            var childElements = 'add' === mode.toLowerCase() ? tempDiv.getElementsByTagName('ins') : tempDiv.getElementsByTagName('del');
             for (var i = 0; i < childElements.length; i++) {
               if (undefined !== childElements[i].id && suggestionID === childElements[i].id) {
-                if ('add' === action.toLowerCase()) {
-                  tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                if ('add' === mode.toLowerCase()) {
+                  //tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                  childElements[i].parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
                 } else {
-                  tempDiv.removeChild(childElements[i]);
+                  if ('format' === action.toLowerCase()) {
+                    childElements[i].parentNode.parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i].parentNode);
+                  } else {
+                    childElements[i].parentNode.removeChild(childElements[i]);
+                  }
                 }
                 delete suggestionHistory[oldClientId][suggestionID];
                 var finalContent = tempDiv.innerHTML;
@@ -2159,6 +2226,7 @@ var SuggestionComment = function (_React$Component) {
           dateTime = _props3.dateTime,
           action = _props3.action,
           userID = _props3.userID,
+          userRole = _props3.userRole,
           index = _props3.index;
 
 
@@ -2186,6 +2254,11 @@ var SuggestionComment = function (_React$Component) {
               'div',
               { className: 'comment-time' },
               dateTime
+            ),
+            wp.element.createElement(
+              'div',
+              { className: 'commenter-role' },
+              userRole
             )
           ),
           index === 0 && wp.element.createElement(

@@ -9,6 +9,7 @@ let beforeChangeContent = {};
 let currentNewContent = '';
 let loadInitialSuggestion = [];
 let displayInitialSuggestion = true;
+let currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
 
 export default createHigherOrderComponent( ( BlockEdit ) => {
   return class extends Component {
@@ -55,9 +56,32 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
           if ( wp.data.select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_is_suggestion_mode'] ) {
             let editRecord = wp.data.select('core').getUndoEdit();
             const currentBlockIndex = select( 'core/block-editor' ).getBlockIndex( clientId );
+            let finalBlockProps;
             if (editRecord && editRecord.edits && editRecord.edits.blocks) {
-              if (editRecord.edits.blocks[currentBlockIndex] && editRecord.edits.blocks[currentBlockIndex].name === 'core/paragraph') {
-                let attr = editRecord.edits.blocks[currentBlockIndex].attributes;
+              if ( -1 === currentBlockIndex ) {
+                let blockParents = wp.data.select('core/block-editor').getBlockParents(clientId);
+                if ( 0 < blockParents.length ) {
+                  for ( let b = 0; b < blockParents.length; b++ ) {
+                    if ( 0 === b ) {
+                      finalBlockProps = editRecord.edits.blocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b])];
+                      if ( 1 === blockParents.length ) {
+                        finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
+                        console.log(finalBlockProps);
+                      }
+                    } else if ( ( b + 1 ) === blockParents.length ) {
+                      finalBlockProps = finalBlockProps.innerBlocks ? finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b -1])] :  finalBlockProps.innerBlocks;
+                      finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
+                      console.log(finalBlockProps);
+                    } else {
+                      finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])];
+                    }
+                  }
+                }
+              } else {
+                finalBlockProps = editRecord.edits.blocks[currentBlockIndex];
+              }
+              if ( finalBlockProps.name === 'core/paragraph' ) {
+                let attr = finalBlockProps.attributes;
                 let currentAttr = wp.data.select('core/block-editor').getBlockAttributes(clientId);
                 if ( '' === currentAttr.content || currentNewContent !== currentAttr.content ) {
                   displayInitialSuggestion = false;
@@ -65,7 +89,6 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                     beforeChangeContent[clientId] = attr.content;
                   }
                   if ( currentAttr.content !== attr.content ) {
-
                     const currentUser = wp.data.select('core').getCurrentUser().id;
                     const userName = wp.data.select('core').getCurrentUser().name;
                     const userAvtars = wp.data.select('core').getCurrentUser().avatar_urls;
@@ -100,6 +123,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
 
                     if ( 0 < diff.length ) {
                       let tagArray = ['strong', 'em', 'a', 's', 'code', 'span'];
+                      let formatName = {'strong': 'bold', 'em': 'italic', 's': 'strikethrough', 'span': 'underline', 'code': 'code', 'a': 'link'};
                       let matchRegex = false;
                       let ignoreCleanUp = false;
 
@@ -231,6 +255,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                       let updateOldContent = false;
                       let isFormating = false;
                       let nextFomatingIndex = 0;
+                      let formatTagName = '';
                       for ( let x = 0; x < diff.length; x++) {
                         let op = diff[x][0];
                         let text = diff[x][1];
@@ -254,6 +279,8 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                               let regex = new RegExp( dynamicRegex, "g");
                               if ( regex.test(text) ) {
                                 tagFound = true;
+                                formatTagName = tagArray[h];
+                                break;
                               }
                             }
                           }
@@ -278,10 +305,14 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                               nextFomatingIndex = 0;
                               html[x] = text;
                             } else {
-
                               html[x] = '<ins id="' + uniqueId + '" style="color: #008000;">' + text + '</ins>';
                               let tempObject = {};
-                              tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'Add', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime}]
+                              if ( isFormating && '' !== formatTagName ) {
+                                tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime}];
+                                formatTagName = '';
+                              } else {
+                                tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Add', 'mode': 'Add', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime}];
+                              }
                               if ( 0 === suggestionHistory.length ) {
                                 suggestionHistory = {};
                                 suggestionHistory[objClientId] = tempObject;
@@ -295,14 +326,22 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                           case DiffMatchPatch.DIFF_DELETE:
                             if ( ! isFormating && tagFound ) {
                               isFormating = true;
+                              html[x] = text;
+                              diff[x+1][0] = -1;
                               nextFomatingIndex = x + 2;
                             } else if( isFormating && nextFomatingIndex === x ) {
                               isFormating = false;
+                              html[x] = text;
                               nextFomatingIndex = 0;
                             } else {
                               html[x] = '<del id="' + uniqueId + '" style="color: #ff0000;">' + text + '</del>';
                               let tempObject = {};
-                              tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'avtar': avtarUrl, 'action': 'Delete', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime}];
+                              if ( isFormating && '' !== formatTagName ) {
+                                tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Delete', 'text': formatName[formatTagName], 'time': dateTime}];
+                                formatTagName = '';
+                              } else {
+                                tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Delete', 'mode': 'Delete', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime}];
+                              }
                               if ( 0 === suggestionHistory.length ) {
                                 suggestionHistory = {};
                                 suggestionHistory[objClientId] = tempObject;
@@ -351,6 +390,10 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                             clientIdNode.appendChild(newNode);
 
                             let referenceNode = document.getElementById('md-suggestion-comments');
+                            if ( null === referenceNode ) {
+                              this.handleLoad();
+                              referenceNode = document.getElementById('md-suggestion-comments');
+                            }
                             referenceNode.appendChild(clientIdNode);
 
                             ReactDOM.render(
@@ -404,7 +447,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
     renderAllSuggestion( displayHistory, commentNode ) {
 
       const { attributes, clientId } = this.props;
-      const { oldClientId } = attributes;
+      const { oldClientId, content } = attributes;
 
       let suggestionChildKey = Object.keys( displayHistory[oldClientId] );
       let clientIdNode = document.getElementById(oldClientId);
@@ -414,18 +457,24 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
       }
 
       for ( let i = 0; i < suggestionChildKey.length; i++ ) {
-        let newNode = document.createElement('div');
-        newNode.setAttribute('id', 'sg' + suggestionChildKey[i]);
-        newNode.setAttribute('data-sid', suggestionChildKey[i]);
-        newNode.setAttribute('class', 'cls-board-outer');
-        clientIdNode.appendChild(newNode);
-        commentNode.appendChild(clientIdNode);
+        let findItem = 'id="' + suggestionChildKey[i] + '"';
 
+        if ( -1 === content.indexOf(findItem) ) {
+          delete displayHistory[oldClientId][suggestionChildKey[i]];
+        } else {
+          let newNode = document.createElement('div');
+          newNode.setAttribute('id', 'sg' + suggestionChildKey[i]);
+          newNode.setAttribute('data-sid', suggestionChildKey[i]);
+          newNode.setAttribute('class', 'cls-board-outer');
+          clientIdNode.appendChild(newNode);
+          commentNode.appendChild(clientIdNode);
+        }
         ReactDOM.render(
           <SuggestionBoard oldClientId={oldClientId} clientId={clientId} suggestionID={suggestionChildKey[i]} suggestedOnText={displayHistory[oldClientId][suggestionChildKey[i]]} />,
           document.getElementById('sg' + suggestionChildKey[i])
         );
       }
+      wp.data.dispatch('core/editor').editPost({meta: {sb_suggestion_history: JSON.stringify(displayHistory) } });
     }
     render() {
       return (
