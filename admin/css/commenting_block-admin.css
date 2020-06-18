@@ -213,7 +213,7 @@ div#Div1 {
   font-weight: bold;
   letter-spacing: 0.50px;
   border-radius: 4px;
-  padding: 5px 10px;
+  padding: 5px 10px 5px 5px;
   margin-right: 5px;
   outline: none;
   cursor: pointer;
@@ -410,10 +410,12 @@ span.user-name {
 }
 
 .comment-header .commenter-name-time {
-  margin-right: 10px;
+  margin-right: 0;
   white-space: nowrap;
   overflow: hidden;
   flex-grow: 1;
+  width: 60%;
+  width: calc(100% - 130px);
 }
 
 .comment-header .commenter-name-time .commenter-name {
@@ -748,7 +750,7 @@ body.hide-comments #md-span-comments {
 }
 
 .comment-header .suggest-box-action {
-  width: 80px;
+  width: 70px;
 }
 
 .comment-header .suggest-box-action button {
