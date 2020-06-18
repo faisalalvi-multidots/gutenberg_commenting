@@ -397,6 +397,11 @@ const mdComment = {
 
                 // Float comments column.
                 if(undefined !== selectedText) {
+                    //Active comment tab
+                    if ( ! $('#md-tabs .comment').hasClass('active') ) {
+                      $('#md-tabs').find('span').removeClass('active').end().find('span.comment').addClass('active');
+                      $('#md-comments-suggestions-parent').find('#md-suggestion-comments').hide().siblings('#md-span-comments').show();
+                    }
                     this.floatComments(selectedText);
                 }
 

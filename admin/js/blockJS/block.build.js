@@ -478,6 +478,11 @@ var mdComment = {
 
                     // Float comments column.
                     if (undefined !== selectedText) {
+                        //Active comment tab
+                        if (!$('#md-tabs .comment').hasClass('active')) {
+                            $('#md-tabs').find('span').removeClass('active').end().find('span.comment').addClass('active');
+                            $('#md-comments-suggestions-parent').find('#md-suggestion-comments').hide().siblings('#md-span-comments').show();
+                        }
                         this.floatComments(selectedText);
                     }
                 }
@@ -1399,10 +1404,10 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
     function _class(props) {
       _classCallCheck(this, _class);
 
-      var _this = _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).call(this, props));
+      var _this2 = _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).call(this, props));
 
-      _this.handleLoad = _this.handleLoad.bind(_this);
-      return _this;
+      _this2.handleLoad = _this2.handleLoad.bind(_this2);
+      return _this2;
     }
 
     _createClass(_class, [{
@@ -1421,7 +1426,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
         if (null === commentNode) {
           commentNode = document.createElement('div');
           commentNode.setAttribute('id', 'md-suggestion-comments');
-          //commentNode.setAttribute('class', 'comments-loader');
+          commentNode.style.display = 'none';
           var wpEditoNode = document.getElementById('md-comments-suggestions-parent');
           wpEditoNode.appendChild(commentNode);
           this.addEvents();
@@ -1463,12 +1468,10 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                         finalBlockProps = editRecord.edits.blocks[select('core/block-editor').getBlockIndex(blockParents[b])];
                         if (1 === blockParents.length) {
                           finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
-                          console.log(finalBlockProps);
                         }
                       } else if (b + 1 === blockParents.length) {
                         finalBlockProps = finalBlockProps.innerBlocks ? finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])] : finalBlockProps.innerBlocks;
                         finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
-                        console.log(finalBlockProps);
                       } else {
                         finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])];
                       }
@@ -1523,6 +1526,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                         var formatName = { 'strong': 'bold', 'em': 'italic', 's': 'strikethrough', 'span': 'underline', 'code': 'code', 'a': 'link' };
                         var matchRegex = false;
                         var ignoreCleanUp = false;
+                        var isComment = false;
 
                         if ('' !== currentAttr.content) {
                           for (var v = 0; v < diff.length; v++) {
@@ -1585,6 +1589,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                             } else if ('<mdspan ' === diffCommentNode && 'dat' === diffNextTagId && 'class=' === diffCommentLastNode) {
                               diff[v + 1][0] = 0;
                               ignoreCleanUp = true;
+                              isComment = true;
                             } else if (' target=' === diff[v][1].substring(0, 8) && 'noopener"' === diff[v][1].slice(-9) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
                               diff[v][0] = 0;
                               diff[v][1] = __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation ? diff[v][1] : '';
@@ -1610,6 +1615,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                   diff[v][1] = '';
                                   diff[v + 2][0] = 0;
                                   diff[v + 2][1] = '';
+                                  isComment = true;
                                 }
                               }
                               diffText = diffText.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
@@ -1646,155 +1652,158 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                         if (!matchRegex && !ignoreCleanUp) {
                           dmp.diff_cleanupSemantic(diff);
                         }
+                        if (!isComment) {
+                          var html = [];
+                          var updateOldContent = false;
+                          var isFormating = false;
+                          var nextFomatingIndex = 0;
+                          var formatTagName = '';
+                          for (var x = 0; x < diff.length; x++) {
+                            var op = diff[x][0];
+                            var text = diff[x][1];
+                            var tagFound = false;
+                            if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttr.content) {
+                              text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
+                              if (!isFormating) {
+                                for (var h = 0; h < tagArray.length; h++) {
+                                  var _fullTagRegex = 'a' === tagArray[h] ? '<' + tagArray[h] + ' (.*)>(.*)<\/' + tagArray[h] + '>' : '<' + tagArray[h] + '>(.*)<\/' + tagArray[h] + '>';
+                                  var _fullTagFinalRegex = new RegExp(_fullTagRegex);
+                                  if (null !== text.match(_fullTagFinalRegex)) {
+                                    break;
+                                  }
+                                  var _dynamicRegex = void 0;
+                                  if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === op) {
+                                    _dynamicRegex = "<(" + tagArray[h] + "|\/" + tagArray[h] + ")";
+                                  } else {
+                                    _dynamicRegex = 'a' === tagArray[h] ? "a [^>]*>" : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
+                                  }
 
-                        var html = [];
-                        var updateOldContent = false;
-                        var isFormating = false;
-                        var nextFomatingIndex = 0;
-                        var formatTagName = '';
-                        for (var x = 0; x < diff.length; x++) {
-                          var op = diff[x][0];
-                          var text = diff[x][1];
-                          var tagFound = false;
-                          if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttr.content) {
-                            text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
-                            if (!isFormating) {
-                              for (var h = 0; h < tagArray.length; h++) {
-                                var _fullTagRegex = 'a' === tagArray[h] ? '<' + tagArray[h] + ' (.*)>(.*)<\/' + tagArray[h] + '>' : '<' + tagArray[h] + '>(.*)<\/' + tagArray[h] + '>';
-                                var _fullTagFinalRegex = new RegExp(_fullTagRegex);
-                                if (null !== text.match(_fullTagFinalRegex)) {
-                                  break;
-                                }
-                                var _dynamicRegex = void 0;
-                                if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === op) {
-                                  _dynamicRegex = "<(" + tagArray[h] + "|\/" + tagArray[h] + ")";
-                                } else {
-                                  _dynamicRegex = 'a' === tagArray[h] ? "a [^>]*>" : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
-                                }
-
-                                var _regex = new RegExp(_dynamicRegex, "g");
-                                if (_regex.test(text)) {
-                                  tagFound = true;
-                                  formatTagName = tagArray[h];
-                                  break;
+                                  var _regex = new RegExp(_dynamicRegex, "g");
+                                  if (_regex.test(text)) {
+                                    tagFound = true;
+                                    formatTagName = tagArray[h];
+                                    break;
+                                  }
                                 }
                               }
                             }
-                          }
 
-                          var uniqueId = Math.floor(Math.random() * 100).toString() + Date.now().toString();
-                          var dateTime = wp.date.gmdate(timeFormat + ' ' + dateFormat);
+                            var uniqueId = Math.floor(Math.random() * 100).toString() + Date.now().toString();
+                            var dateTime = wp.date.gmdate(timeFormat + ' ' + dateFormat);
 
-                          switch (op) {
-                            case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT:
-                              if (!isFormating && tagFound) {
-                                isFormating = true;
-                                nextFomatingIndex = x + 2;
-                                diff[x + 1][0] = 1;
-                                html[x] = text;
+                            switch (op) {
+                              case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT:
+                                if (!isFormating && tagFound) {
+                                  isFormating = true;
+                                  nextFomatingIndex = x + 2;
+                                  diff[x + 1][0] = 1;
+                                  html[x] = text;
+                                  updateOldContent = true;
+                                } else if (isFormating && nextFomatingIndex === x) {
+                                  isFormating = false;
+                                  nextFomatingIndex = 0;
+                                  html[x] = text;
+                                } else {
+                                  html[x] = '<ins id="' + uniqueId + '" style="color: #008000;">' + text + '</ins>';
+                                  var tempObject = {};
+                                  if (isFormating && '' !== formatTagName) {
+                                    tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime }];
+                                    formatTagName = '';
+                                  } else {
+                                    tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Add', 'mode': 'Add', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                  }
+                                  if (0 === suggestionHistory.length) {
+                                    suggestionHistory = {};
+                                    suggestionHistory[objClientId] = tempObject;
+                                  } else if (!suggestionHistory[objClientId]) {
+                                    suggestionHistory[objClientId] = tempObject;
+                                  } else {
+                                    Object.assign(suggestionHistory[objClientId], tempObject);
+                                  }
+                                }
+                                break;
+                              case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_DELETE:
+                                if (!isFormating && tagFound) {
+                                  isFormating = true;
+                                  html[x] = text;
+                                  diff[x + 1][0] = -1;
+                                  nextFomatingIndex = x + 2;
+                                } else if (isFormating && nextFomatingIndex === x) {
+                                  isFormating = false;
+                                  html[x] = text;
+                                  nextFomatingIndex = 0;
+                                } else {
+                                  html[x] = '<del id="' + uniqueId + '" style="color: #ff0000;">' + text + '</del>';
+                                  var _tempObject = {};
+                                  if (isFormating && '' !== formatTagName) {
+                                    _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Delete', 'text': formatName[formatTagName], 'time': dateTime }];
+                                    formatTagName = '';
+                                  } else {
+                                    _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Delete', 'mode': 'Delete', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                  }
+                                  if (0 === suggestionHistory.length) {
+                                    suggestionHistory = {};
+                                    suggestionHistory[objClientId] = _tempObject;
+                                  } else if (!suggestionHistory[objClientId]) {
+                                    suggestionHistory[objClientId] = _tempObject;
+                                  } else {
+                                    Object.assign(suggestionHistory[objClientId], _tempObject);
+                                  }
+                                }
                                 updateOldContent = true;
-                              } else if (isFormating && nextFomatingIndex === x) {
-                                isFormating = false;
-                                nextFomatingIndex = 0;
+                                break;
+                              case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL:
                                 html[x] = text;
-                              } else {
-                                html[x] = '<ins id="' + uniqueId + '" style="color: #008000;">' + text + '</ins>';
-                                var tempObject = {};
-                                if (isFormating && '' !== formatTagName) {
-                                  tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime }];
-                                  formatTagName = '';
-                                } else {
-                                  tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Add', 'mode': 'Add', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
-                                }
-                                if (0 === suggestionHistory.length) {
-                                  suggestionHistory = {};
-                                  suggestionHistory[objClientId] = tempObject;
-                                } else if (!suggestionHistory[objClientId]) {
-                                  suggestionHistory[objClientId] = tempObject;
-                                } else {
-                                  Object.assign(suggestionHistory[objClientId], tempObject);
-                                }
-                              }
-                              break;
-                            case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_DELETE:
-                              if (!isFormating && tagFound) {
-                                isFormating = true;
-                                html[x] = text;
-                                diff[x + 1][0] = -1;
-                                nextFomatingIndex = x + 2;
-                              } else if (isFormating && nextFomatingIndex === x) {
-                                isFormating = false;
-                                html[x] = text;
-                                nextFomatingIndex = 0;
-                              } else {
-                                html[x] = '<del id="' + uniqueId + '" style="color: #ff0000;">' + text + '</del>';
-                                var _tempObject = {};
-                                if (isFormating && '' !== formatTagName) {
-                                  _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Delete', 'text': formatName[formatTagName], 'time': dateTime }];
-                                  formatTagName = '';
-                                } else {
-                                  _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Delete', 'mode': 'Delete', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
-                                }
-                                if (0 === suggestionHistory.length) {
-                                  suggestionHistory = {};
-                                  suggestionHistory[objClientId] = _tempObject;
-                                } else if (!suggestionHistory[objClientId]) {
-                                  suggestionHistory[objClientId] = _tempObject;
-                                } else {
-                                  Object.assign(suggestionHistory[objClientId], _tempObject);
-                                }
-                              }
-                              updateOldContent = true;
-                              break;
-                            case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL:
-                              html[x] = text;
-                              break;
-                          }
-                        }
-                        var finalDiff = html.join('');
-
-                        if (updateOldContent) {
-                          beforeChangeContent[clientId] = finalDiff;
-                        }
-                        currentNewContent = finalDiff;
-
-                        if (suggestionHistory[objClientId]) {
-                          var suggestionChildKey = Object.keys(suggestionHistory[objClientId]);
-
-                          var clientIdNode = document.getElementById(objClientId);
-                          if (!clientIdNode) {
-                            clientIdNode = document.createElement('div');
-                            clientIdNode.setAttribute('id', objClientId);
-                          } else {
-                            clientIdNode.innerHTML = '';
-                          }
-
-                          for (var _i = 0; _i < suggestionChildKey.length; _i++) {
-                            var findItem = 'id="' + suggestionChildKey[_i] + '"';
-
-                            if (-1 === finalDiff.indexOf(findItem)) {
-                              delete suggestionHistory[objClientId][suggestionChildKey[_i]];
-                            } else {
-                              var newNode = document.createElement('div');
-                              newNode.setAttribute('id', 'sg' + suggestionChildKey[_i]);
-                              newNode.setAttribute('data-sid', suggestionChildKey[_i]);
-                              newNode.setAttribute('class', 'cls-board-outer'); // need to change class
-                              clientIdNode.appendChild(newNode);
-
-                              var referenceNode = document.getElementById('md-suggestion-comments');
-                              if (null === referenceNode) {
-                                this.handleLoad();
-                                referenceNode = document.getElementById('md-suggestion-comments');
-                              }
-                              referenceNode.appendChild(clientIdNode);
-
-                              ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId, suggestionID: suggestionChildKey[_i], suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i]] }), document.getElementById('sg' + suggestionChildKey[_i]));
+                                break;
                             }
                           }
-                        }
-                        if ('' !== finalDiff) {
-                          setAttributes({ content: finalDiff });
-                          wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
+                          var finalDiff = html.join('');
+
+                          if (updateOldContent) {
+                            beforeChangeContent[clientId] = finalDiff;
+                          }
+                          currentNewContent = finalDiff;
+
+                          if (suggestionHistory[objClientId]) {
+                            var suggestionChildKey = Object.keys(suggestionHistory[objClientId]);
+
+                            var clientIdNode = document.getElementById(objClientId);
+                            if (!clientIdNode) {
+                              clientIdNode = document.createElement('div');
+                              clientIdNode.setAttribute('id', objClientId);
+                            } else {
+                              clientIdNode.innerHTML = '';
+                            }
+
+                            for (var _i = 0; _i < suggestionChildKey.length; _i++) {
+                              var findItem = 'id="' + suggestionChildKey[_i] + '"';
+
+                              if (-1 === finalDiff.indexOf(findItem)) {
+                                delete suggestionHistory[objClientId][suggestionChildKey[_i]];
+                              } else {
+                                var newNode = document.createElement('div');
+                                newNode.setAttribute('id', 'sg' + suggestionChildKey[_i]);
+                                newNode.setAttribute('data-sid', suggestionChildKey[_i]);
+                                newNode.setAttribute('class', 'cls-board-outer'); // need to change class
+                                clientIdNode.appendChild(newNode);
+
+                                var referenceNode = document.getElementById('md-suggestion-comments');
+                                if (null === referenceNode) {
+                                  this.handleLoad();
+                                  referenceNode = document.getElementById('md-suggestion-comments');
+                                }
+                                referenceNode.appendChild(clientIdNode);
+
+                                ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId, suggestionID: suggestionChildKey[_i], suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i]] }), document.getElementById('sg' + suggestionChildKey[_i]));
+                              }
+                            }
+                          }
+                          if ('' !== finalDiff) {
+                            setAttributes({ content: finalDiff });
+                            wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
+                          }
+                        } else {
+                          beforeChangeContent[clientId] = currentAttr.content;
                         }
                       }
                     }
@@ -1808,19 +1817,12 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
     }, {
       key: 'addEvents',
       value: function addEvents() {
+        var _this = this;
         jQuery(document).on('keyup', '.wp-block-paragraph', function () {
-          if (0 < jQuery(this).find('[data-rich-text-format-boundary="true"]').length && undefined !== jQuery(this).find('[data-rich-text-format-boundary="true"]').attr('id')) {
-            jQuery('#sg' + jQuery(this).find('[data-rich-text-format-boundary="true"]').attr('id')).addClass('focus');
-          } else {
-            jQuery('#md-suggestion-comments .cls-board-outer').removeClass('focus');
-          }
+          _this.activeSuggestionBox(jQuery(this));
         });
         jQuery(document).on('mouseup', '.wp-block-paragraph', function () {
-          if (0 < jQuery(this).find('[data-rich-text-format-boundary="true"]').length && undefined !== jQuery(this).find('[data-rich-text-format-boundary="true"]').attr('id')) {
-            jQuery('#sg' + jQuery(this).find('[data-rich-text-format-boundary="true"]').attr('id')).addClass('focus');
-          } else {
-            jQuery('#md-suggestion-comments .cls-board-outer').removeClass('focus');
-          }
+          _this.activeSuggestionBox(jQuery(this));
         });
         jQuery(document).on('click', '#md-suggestion-comments .cls-board-outer:not(".focus")', function (e) {
           var sid = jQuery(this).attr('data-sid');
@@ -1832,6 +1834,28 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
           jQuery('#md-suggestion-comments .cls-board-outer').removeClass('focus');
           jQuery(this).addClass('focus');
         });
+        jQuery(document).on('click', '#md-comments-suggestions-parent #md-tabs span', function () {
+          jQuery(this).parents('#md-tabs').find('span').removeClass('active');
+          jQuery(this).addClass('active');
+          if (jQuery(this).hasClass('suggestion')) {
+            jQuery(this).parents('#md-comments-suggestions-parent').find('#md-span-comments').hide().siblings('#md-suggestion-comments').show();
+          } else {
+            jQuery(this).parents('#md-comments-suggestions-parent').find('#md-suggestion-comments').hide().siblings('#md-span-comments').show();
+          }
+        });
+      }
+    }, {
+      key: 'activeSuggestionBox',
+      value: function activeSuggestionBox($this) {
+        if (0 < $this.find('[data-rich-text-format-boundary="true"]').length && undefined !== $this.find('[data-rich-text-format-boundary="true"]').attr('id')) {
+          jQuery('#sg' + $this.find('[data-rich-text-format-boundary="true"]').attr('id')).addClass('focus');
+          if (!jQuery('#md-tabs .suggestion').hasClass('active')) {
+            jQuery('#md-tabs').find('span').removeClass('active').end().find('span.suggestion').addClass('active');
+            jQuery('#md-comments-suggestions-parent').find('#md-span-comments').hide().siblings('#md-suggestion-comments').show();
+          }
+        } else {
+          jQuery('#md-suggestion-comments .cls-board-outer').removeClass('focus');
+        }
       }
     }, {
       key: 'renderAllSuggestion',

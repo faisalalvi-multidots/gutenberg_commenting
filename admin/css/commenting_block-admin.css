@@ -772,6 +772,7 @@ body.hide-comments #md-span-comments {
 #md-tabs {
   margin-bottom: 15px;
   display: flex;
+  min-width: 285px;
 }
 
 #md-tabs span {
