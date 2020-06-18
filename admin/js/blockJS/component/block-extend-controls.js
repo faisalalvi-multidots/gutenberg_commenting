@@ -10,6 +10,8 @@ let currentNewContent = '';
 let loadInitialSuggestion = [];
 let displayInitialSuggestion = true;
 let currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
+let dateFormat = suggestionBlock ? suggestionBlock.dateFormat : 'F j, Y';
+let timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
 
 export default createHigherOrderComponent( ( BlockEdit ) => {
   return class extends Component {
@@ -24,7 +26,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
 
     handleLoad() {
       const { oldClientId } = this.props.attributes;
-      let suggestionHistory = wp.data.select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_suggestion_history'];
+      let suggestionHistory = select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_suggestion_history'];
       let commentNode = document.getElementById('md-suggestion-comments');
 
       if ( null === commentNode ) {
@@ -49,31 +51,31 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
       if ( 'core/paragraph' === this.props.name ) {
         const { attributes, setAttributes, clientId, isSelected } = this.props;
         const { oldClientId } = attributes;
-        const postStatus = wp.data.select('core/editor').getCurrentPost().status;
-        let suggestionHistory = wp.data.select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_suggestion_history'];
+        const postStatus = select('core/editor').getCurrentPost().status;
+        let suggestionHistory = select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_suggestion_history'];
 
         if ( 'publish' !== postStatus && isSelected ) {
-          if ( wp.data.select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_is_suggestion_mode'] ) {
-            let editRecord = wp.data.select('core').getUndoEdit();
+          if ( select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_is_suggestion_mode'] ) {
+            let editRecord = select('core').getUndoEdit();
             const currentBlockIndex = select( 'core/block-editor' ).getBlockIndex( clientId );
             let finalBlockProps;
             if (editRecord && editRecord.edits && editRecord.edits.blocks) {
               if ( -1 === currentBlockIndex ) {
-                let blockParents = wp.data.select('core/block-editor').getBlockParents(clientId);
+                let blockParents = select('core/block-editor').getBlockParents(clientId);
                 if ( 0 < blockParents.length ) {
                   for ( let b = 0; b < blockParents.length; b++ ) {
                     if ( 0 === b ) {
-                      finalBlockProps = editRecord.edits.blocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b])];
+                      finalBlockProps = editRecord.edits.blocks[select('core/block-editor').getBlockIndex(blockParents[b])];
                       if ( 1 === blockParents.length ) {
-                        finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
+                        finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
                         console.log(finalBlockProps);
                       }
                     } else if ( ( b + 1 ) === blockParents.length ) {
-                      finalBlockProps = finalBlockProps.innerBlocks ? finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b -1])] :  finalBlockProps.innerBlocks;
-                      finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
+                      finalBlockProps = finalBlockProps.innerBlocks ? finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b -1])] :  finalBlockProps.innerBlocks;
+                      finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
                       console.log(finalBlockProps);
                     } else {
-                      finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])];
+                      finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])];
                     }
                   }
                 }
@@ -82,16 +84,16 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
               }
               if ( finalBlockProps.name === 'core/paragraph' ) {
                 let attr = finalBlockProps.attributes;
-                let currentAttr = wp.data.select('core/block-editor').getBlockAttributes(clientId);
+                let currentAttr = select('core/block-editor').getBlockAttributes(clientId);
                 if ( '' === currentAttr.content || currentNewContent !== currentAttr.content ) {
                   displayInitialSuggestion = false;
                   if ( 0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId] ) {
                     beforeChangeContent[clientId] = attr.content;
                   }
                   if ( currentAttr.content !== attr.content ) {
-                    const currentUser = wp.data.select('core').getCurrentUser().id;
-                    const userName = wp.data.select('core').getCurrentUser().name;
-                    const userAvtars = wp.data.select('core').getCurrentUser().avatar_urls;
+                    const currentUser = select('core').getCurrentUser().id;
+                    const userName = select('core').getCurrentUser().name;
+                    const userAvtars = select('core').getCurrentUser().avatar_urls;
                     const avtarUrl = userAvtars[Object.keys(userAvtars)[1]];
 
                     if ( 0 < suggestionHistory.length ) {
@@ -287,10 +289,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                         }
 
                         let uniqueId = Math.floor(Math.random() * 100).toString() + Date.now().toString();
-                        let today = new Date();
-                        let date = today.getFullYear() + '-' + ( today.getMonth() + 1 ) + '-' + today.getDate();
-                        let time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
-                        let dateTime = date + ' ' + time;
+                        let dateTime = wp.date.gmdate(timeFormat + ' ' + dateFormat );
 
                         switch ( op ) {
                           case DiffMatchPatch.DIFF_INSERT:

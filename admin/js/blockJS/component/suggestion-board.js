@@ -3,6 +3,8 @@ import SuggestionComment from "./suggestion-comment";
 const {removeFormat} = wp.richText;
 const {Fragment} = wp.element;
 let currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
+let dateFormat = suggestionBlock ? suggestionBlock.dateFormat : 'F j, Y';
+let timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
 export default class SuggestionBoard extends React.Component {
 
   constructor(props) {
@@ -53,10 +55,7 @@ export default class SuggestionBoard extends React.Component {
 
       let suggestionHistory = wp.data.select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_suggestion_history'];
       suggestionHistory = JSON.parse(suggestionHistory);
-      let today = new Date();
-      let date = today.getFullYear() + '-' + ( today.getMonth() + 1 ) + '-' + today.getDate();
-      let time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
-      let dateTime = date + ' ' + time;
+      let dateTime = wp.date.gmdate(timeFormat + ' ' + dateFormat );
       let newCommentInfo = {'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'reply', 'mode': 'Reply', 'text': newText, 'time': dateTime};
       suggestionHistory[oldClientId][suggestionID].push(newCommentInfo);
       wp.data.dispatch('core/editor').editPost({meta: {sb_suggestion_history: JSON.stringify(suggestionHistory) } });

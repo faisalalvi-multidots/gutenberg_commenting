@@ -1389,6 +1389,8 @@ var currentNewContent = '';
 var loadInitialSuggestion = [];
 var displayInitialSuggestion = true;
 var currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
+var dateFormat = suggestionBlock ? suggestionBlock.dateFormat : 'F j, Y';
+var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
 
 /* harmony default export */ __webpack_exports__["a"] = (createHigherOrderComponent(function (BlockEdit) {
   return function (_Component) {
@@ -1413,7 +1415,7 @@ var currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
       value: function handleLoad() {
         var oldClientId = this.props.attributes.oldClientId;
 
-        var suggestionHistory = wp.data.select('core/editor').getEditedPostAttribute('meta')['sb_suggestion_history'];
+        var suggestionHistory = select('core/editor').getEditedPostAttribute('meta')['sb_suggestion_history'];
         var commentNode = document.getElementById('md-suggestion-comments');
 
         if (null === commentNode) {
@@ -1444,31 +1446,31 @@ var currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
               isSelected = _props.isSelected;
           var oldClientId = attributes.oldClientId;
 
-          var postStatus = wp.data.select('core/editor').getCurrentPost().status;
-          var suggestionHistory = wp.data.select('core/editor').getEditedPostAttribute('meta')['sb_suggestion_history'];
+          var postStatus = select('core/editor').getCurrentPost().status;
+          var suggestionHistory = select('core/editor').getEditedPostAttribute('meta')['sb_suggestion_history'];
 
           if ('publish' !== postStatus && isSelected) {
-            if (wp.data.select('core/editor').getEditedPostAttribute('meta')['sb_is_suggestion_mode']) {
-              var editRecord = wp.data.select('core').getUndoEdit();
+            if (select('core/editor').getEditedPostAttribute('meta')['sb_is_suggestion_mode']) {
+              var editRecord = select('core').getUndoEdit();
               var currentBlockIndex = select('core/block-editor').getBlockIndex(clientId);
               var finalBlockProps = void 0;
               if (editRecord && editRecord.edits && editRecord.edits.blocks) {
                 if (-1 === currentBlockIndex) {
-                  var blockParents = wp.data.select('core/block-editor').getBlockParents(clientId);
+                  var blockParents = select('core/block-editor').getBlockParents(clientId);
                   if (0 < blockParents.length) {
                     for (var b = 0; b < blockParents.length; b++) {
                       if (0 === b) {
-                        finalBlockProps = editRecord.edits.blocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b])];
+                        finalBlockProps = editRecord.edits.blocks[select('core/block-editor').getBlockIndex(blockParents[b])];
                         if (1 === blockParents.length) {
-                          finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
+                          finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
                           console.log(finalBlockProps);
                         }
                       } else if (b + 1 === blockParents.length) {
-                        finalBlockProps = finalBlockProps.innerBlocks ? finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])] : finalBlockProps.innerBlocks;
-                        finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
+                        finalBlockProps = finalBlockProps.innerBlocks ? finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])] : finalBlockProps.innerBlocks;
+                        finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(clientId, blockParents[b])];
                         console.log(finalBlockProps);
                       } else {
-                        finalBlockProps = finalBlockProps.innerBlocks[wp.data.select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])];
+                        finalBlockProps = finalBlockProps.innerBlocks[select('core/block-editor').getBlockIndex(blockParents[b], blockParents[b - 1])];
                       }
                     }
                   }
@@ -1477,16 +1479,16 @@ var currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
                 }
                 if (finalBlockProps.name === 'core/paragraph') {
                   var attr = finalBlockProps.attributes;
-                  var currentAttr = wp.data.select('core/block-editor').getBlockAttributes(clientId);
+                  var currentAttr = select('core/block-editor').getBlockAttributes(clientId);
                   if ('' === currentAttr.content || currentNewContent !== currentAttr.content) {
                     displayInitialSuggestion = false;
                     if (0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId]) {
                       beforeChangeContent[clientId] = attr.content;
                     }
                     if (currentAttr.content !== attr.content) {
-                      var currentUser = wp.data.select('core').getCurrentUser().id;
-                      var userName = wp.data.select('core').getCurrentUser().name;
-                      var userAvtars = wp.data.select('core').getCurrentUser().avatar_urls;
+                      var currentUser = select('core').getCurrentUser().id;
+                      var userName = select('core').getCurrentUser().name;
+                      var userAvtars = select('core').getCurrentUser().avatar_urls;
                       var avtarUrl = userAvtars[Object.keys(userAvtars)[1]];
 
                       if (0 < suggestionHistory.length) {
@@ -1681,10 +1683,7 @@ var currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
                           }
 
                           var uniqueId = Math.floor(Math.random() * 100).toString() + Date.now().toString();
-                          var today = new Date();
-                          var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-                          var time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
-                          var dateTime = date + ' ' + time;
+                          var dateTime = wp.date.gmdate(timeFormat + ' ' + dateFormat);
 
                           switch (op) {
                             case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT:
@@ -1899,6 +1898,8 @@ var removeFormat = wp.richText.removeFormat;
 var Fragment = wp.element.Fragment;
 
 var currentUserRole = suggestionBlock ? suggestionBlock.userRole : '';
+var dateFormat = suggestionBlock ? suggestionBlock.dateFormat : 'F j, Y';
+var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
 
 var SuggestionBoard = function (_React$Component) {
   _inherits(SuggestionBoard, _React$Component);
@@ -1967,10 +1968,7 @@ var SuggestionBoard = function (_React$Component) {
 
         var suggestionHistory = wp.data.select('core/editor').getEditedPostAttribute('meta')['sb_suggestion_history'];
         suggestionHistory = JSON.parse(suggestionHistory);
-        var today = new Date();
-        var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-        var time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
-        var dateTime = date + ' ' + time;
+        var dateTime = wp.date.gmdate(timeFormat + ' ' + dateFormat);
         var newCommentInfo = { 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'reply', 'mode': 'Reply', 'text': newText, 'time': dateTime };
         suggestionHistory[oldClientId][suggestionID].push(newCommentInfo);
         wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });

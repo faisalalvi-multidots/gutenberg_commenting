@@ -308,8 +308,11 @@ class Commenting_block_Admin {
 		), $this->version, true );
 
 		global $wp_roles;
-		$current_user = wp_get_current_user();
-		wp_localize_script( 'suggestion-block', 'suggestionBlock', array( 'userRole' => $wp_roles->roles[ $current_user->roles[0] ][ 'name' ] ) );
+		$current_user       = wp_get_current_user();
+		$current_user_role  = $wp_roles->roles[ $current_user->roles[0] ][ 'name' ];
+		$date_format        = get_option( 'date_format' );
+		$time_format        = get_option( 'time_format' );
+		wp_localize_script( 'suggestion-block', 'suggestionBlock', array( 'userRole' => $current_user_role, 'dateFormat' => $date_format, 'timeFormat' => $time_format ) );
 
 		wp_enqueue_script( 'jquery-ui-draggable' );
 		wp_enqueue_script( 'jquery-ui-droppable' );
