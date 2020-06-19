@@ -808,3 +808,5 @@ body.hide-comments #md-span-comments {
 .suggestion-mode .block-editor-format-toolbar button[aria-label="Link"], .suggestion-mode .block-editor-format-toolbar button[aria-label="Unlink"] { display: none;}
 .suggestion-mode .components-dropdown-menu__menu .components-button:nth-child(3), .suggestion-mode .components-dropdown-menu__menu .components-button:nth-child(5){display:none;}
 .suggestion-mode .components-popover .block-editor-link-control{display:none;}
+.block-editor-writing-flow {float: left;padding-left: 100px;}
+.block-editor-writing-flow::after {content: '';clear: both;display: block;}
