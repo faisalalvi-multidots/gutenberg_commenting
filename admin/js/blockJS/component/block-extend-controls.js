@@ -259,6 +259,8 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                         let isFormating = false;
                         let nextFomatingIndex = 0;
                         let formatTagName = '';
+                        let isDelete = false;
+                        let deleteUniqueId = '';
                         for ( let x = 0; x < diff.length; x++) {
                           let op = diff[x][0];
                           let text = diff[x][1];
@@ -305,7 +307,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                 nextFomatingIndex = 0;
                                 html[x] = text;
                               } else {
-                                html[x] = '<ins id="' + uniqueId + '" style="color: #008000;">' + text + '</ins>';
+                                html[x] = '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text + '</ins>';
                                 let tempObject = {};
                                 if ( isFormating && '' !== formatTagName ) {
                                   tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime}];
@@ -334,7 +336,9 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                 html[x] = text;
                                 nextFomatingIndex = 0;
                               } else {
-                                html[x] = '<del id="' + uniqueId + '" style="color: #ff0000;">' + text + '</del>';
+                                html[x] = '<del id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #ff0000;">' + text + '</del>';
+                                isDelete = true;
+                                deleteUniqueId = uniqueId;
                                 let tempObject = {};
                                 if ( isFormating && '' !== formatTagName ) {
                                   tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Delete', 'text': formatName[formatTagName], 'time': dateTime}];
@@ -360,7 +364,31 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
 
                         }
                         let finalDiff = html.join('');
-
+                        if ( isDelete && '' !== deleteUniqueId && '' !== finalDiff ) {
+                          let tempDiv = document.createElement('div');
+                          tempDiv.innerHTML = finalDiff;
+                          let nextNodeId = jQuery('del#' + deleteUniqueId +'[data-uid="' + currentUser + '"]', tempDiv).next('del[data-uid="' + currentUser + '"]').attr('id');
+                          let currentChildNodeIndex = 0;
+                          let nextChildNodeIndex = 0;
+                          if ( undefined !== nextNodeId && 0 < tempDiv.childNodes.length ) {
+                            for ( let i = 0; i < tempDiv.childNodes.length; i++ ) {
+                              if ( undefined !== tempDiv.childNodes[i].id  && deleteUniqueId === tempDiv.childNodes[i].id ) {
+                                currentChildNodeIndex = i;
+                              } else if ( undefined !== tempDiv.childNodes[i].id  && nextNodeId === tempDiv.childNodes[i].id ) {
+                                nextChildNodeIndex = i;
+                              }
+                            }
+                          }
+                          if ( currentChildNodeIndex + 1 === nextChildNodeIndex ) {
+                            let currentElementHtml = jQuery('del#' + deleteUniqueId +'[data-uid="' + currentUser + '"]', tempDiv).html();
+                            let nextElementHtml = jQuery('del#' + nextNodeId +'[data-uid="' + currentUser + '"]', tempDiv).html();
+                            jQuery('del#' + deleteUniqueId +'[data-uid="' + currentUser + '"]', tempDiv).html( currentElementHtml + nextElementHtml );
+                            jQuery('del#' + nextNodeId +'[data-uid="' + currentUser + '"]', tempDiv).remove();
+                            delete suggestionHistory[objClientId][nextNodeId];
+                            suggestionHistory[objClientId][deleteUniqueId][0]['text'] = (currentElementHtml + nextElementHtml).replace(/<[^>]*>/g, '');
+                            finalDiff = tempDiv.innerHTML;
+                          }
+                        }
                         if ( updateOldContent ) {
                           beforeChangeContent[clientId] = finalDiff;
                         }

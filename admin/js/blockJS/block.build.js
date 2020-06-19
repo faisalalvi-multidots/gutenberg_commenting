@@ -1658,6 +1658,8 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                           var isFormating = false;
                           var nextFomatingIndex = 0;
                           var formatTagName = '';
+                          var isDelete = false;
+                          var deleteUniqueId = '';
                           for (var x = 0; x < diff.length; x++) {
                             var op = diff[x][0];
                             var text = diff[x][1];
@@ -1704,7 +1706,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                   nextFomatingIndex = 0;
                                   html[x] = text;
                                 } else {
-                                  html[x] = '<ins id="' + uniqueId + '" style="color: #008000;">' + text + '</ins>';
+                                  html[x] = '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text + '</ins>';
                                   var tempObject = {};
                                   if (isFormating && '' !== formatTagName) {
                                     tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime }];
@@ -1733,7 +1735,9 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                   html[x] = text;
                                   nextFomatingIndex = 0;
                                 } else {
-                                  html[x] = '<del id="' + uniqueId + '" style="color: #ff0000;">' + text + '</del>';
+                                  html[x] = '<del id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #ff0000;">' + text + '</del>';
+                                  isDelete = true;
+                                  deleteUniqueId = uniqueId;
                                   var _tempObject = {};
                                   if (isFormating && '' !== formatTagName) {
                                     _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Delete', 'text': formatName[formatTagName], 'time': dateTime }];
@@ -1758,7 +1762,31 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                             }
                           }
                           var finalDiff = html.join('');
-
+                          if (isDelete && '' !== deleteUniqueId && '' !== finalDiff) {
+                            var tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = finalDiff;
+                            var nextNodeId = jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).next('del[data-uid="' + currentUser + '"]').attr('id');
+                            var currentChildNodeIndex = 0;
+                            var nextChildNodeIndex = 0;
+                            if (undefined !== nextNodeId && 0 < tempDiv.childNodes.length) {
+                              for (var _i = 0; _i < tempDiv.childNodes.length; _i++) {
+                                if (undefined !== tempDiv.childNodes[_i].id && deleteUniqueId === tempDiv.childNodes[_i].id) {
+                                  currentChildNodeIndex = _i;
+                                } else if (undefined !== tempDiv.childNodes[_i].id && nextNodeId === tempDiv.childNodes[_i].id) {
+                                  nextChildNodeIndex = _i;
+                                }
+                              }
+                            }
+                            if (currentChildNodeIndex + 1 === nextChildNodeIndex) {
+                              var currentElementHtml = jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).html();
+                              var nextElementHtml = jQuery('del#' + nextNodeId + '[data-uid="' + currentUser + '"]', tempDiv).html();
+                              jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).html(currentElementHtml + nextElementHtml);
+                              jQuery('del#' + nextNodeId + '[data-uid="' + currentUser + '"]', tempDiv).remove();
+                              delete suggestionHistory[objClientId][nextNodeId];
+                              suggestionHistory[objClientId][deleteUniqueId][0]['text'] = (currentElementHtml + nextElementHtml).replace(/<[^>]*>/g, '');
+                              finalDiff = tempDiv.innerHTML;
+                            }
+                          }
                           if (updateOldContent) {
                             beforeChangeContent[clientId] = finalDiff;
                           }
@@ -1775,15 +1803,15 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                               clientIdNode.innerHTML = '';
                             }
 
-                            for (var _i = 0; _i < suggestionChildKey.length; _i++) {
-                              var findItem = 'id="' + suggestionChildKey[_i] + '"';
+                            for (var _i2 = 0; _i2 < suggestionChildKey.length; _i2++) {
+                              var findItem = 'id="' + suggestionChildKey[_i2] + '"';
 
                               if (-1 === finalDiff.indexOf(findItem)) {
-                                delete suggestionHistory[objClientId][suggestionChildKey[_i]];
+                                delete suggestionHistory[objClientId][suggestionChildKey[_i2]];
                               } else {
                                 var newNode = document.createElement('div');
-                                newNode.setAttribute('id', 'sg' + suggestionChildKey[_i]);
-                                newNode.setAttribute('data-sid', suggestionChildKey[_i]);
+                                newNode.setAttribute('id', 'sg' + suggestionChildKey[_i2]);
+                                newNode.setAttribute('data-sid', suggestionChildKey[_i2]);
                                 newNode.setAttribute('class', 'cls-board-outer'); // need to change class
                                 clientIdNode.appendChild(newNode);
 
@@ -1794,7 +1822,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                 }
                                 referenceNode.appendChild(clientIdNode);
 
-                                ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId, suggestionID: suggestionChildKey[_i], suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i]] }), document.getElementById('sg' + suggestionChildKey[_i]));
+                                ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId, suggestionID: suggestionChildKey[_i2], suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i2]] }), document.getElementById('sg' + suggestionChildKey[_i2]));
                               }
                             }
                           }
@@ -2034,7 +2062,7 @@ var SuggestionBoard = function (_React$Component) {
             data.action,
             ': '
           ),
-          data.text
+          data.text.length > 100 ? data.text.substring(0, 100) + '...' : data.text
         )
       );
     }

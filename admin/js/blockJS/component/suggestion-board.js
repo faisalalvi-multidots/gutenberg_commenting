@@ -91,7 +91,7 @@ export default class SuggestionBoard extends React.Component {
         { 'reply' !== data.action &&
           <Fragment>
             <strong>{data.action}: </strong>
-            {data.text}
+            { data.text.length > 100 ? data.text.substring(0,100) + '...' : data.text}
           </Fragment>
         }
       </SuggestionComment>
