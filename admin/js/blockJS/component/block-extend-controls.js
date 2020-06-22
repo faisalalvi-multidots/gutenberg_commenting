@@ -48,7 +48,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
     }
 
     componentDidUpdate(prevProps) {
-      if ( 'core/paragraph' === this.props.name ) {
+      if ( 'core/paragraph' === this.props.name || 'core/heading' === this.props.name || 'core/list' === this.props.name ) {
         const { attributes, setAttributes, clientId, isSelected } = this.props;
         const { oldClientId } = attributes;
         const postStatus = select('core/editor').getCurrentPost().status;
@@ -59,7 +59,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
             let editRecord = select('core').getUndoEdit();
             const currentBlockIndex = select( 'core/block-editor' ).getBlockIndex( clientId );
             let finalBlockProps;
-            if (editRecord && editRecord.edits && editRecord.edits.blocks) {
+            if (editRecord && editRecord.edits && editRecord.edits.blocks && 0 < editRecord.edits.blocks.length ) {
               if ( -1 === currentBlockIndex ) {
                 let blockParents = select('core/block-editor').getBlockParents(clientId);
                 if ( 0 < blockParents.length ) {
@@ -80,15 +80,17 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
               } else {
                 finalBlockProps = editRecord.edits.blocks[currentBlockIndex];
               }
-              if ( finalBlockProps.name === 'core/paragraph' ) {
-                let attr = finalBlockProps.attributes;
-                let currentAttr = select('core/block-editor').getBlockAttributes(clientId);
-                if ( '' === currentAttr.content || currentNewContent !== currentAttr.content ) {
+              if ( 'core/paragraph' === finalBlockProps.name || 'core/heading' === finalBlockProps.name || 'core/list' === finalBlockProps.name ) {
+                let oldAttrContent = 'core/list' === finalBlockProps.name ? finalBlockProps.attributes.values : finalBlockProps.attributes.content;
+                let currentAttrContent = 'core/list' === finalBlockProps.name ? select('core/block-editor').getBlockAttributes(clientId).values : select('core/block-editor').getBlockAttributes(clientId).content;
+                if ( '' === currentAttrContent || currentNewContent !== currentAttrContent ) {
                   displayInitialSuggestion = false;
                   if ( 0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId] ) {
-                    beforeChangeContent[clientId] = attr.content;
+                    beforeChangeContent[clientId] = oldAttrContent;
+                  } else if ( 'core/list' === finalBlockProps.name && currentAttrContent.match(/<li><\/li>/) ) {
+                    beforeChangeContent[clientId] = oldAttrContent;
                   }
-                  if ( currentAttr.content !== attr.content ) {
+                  if ( currentAttrContent !== oldAttrContent ) {
                     const currentUser = select('core').getCurrentUser().id;
                     const userName = select('core').getCurrentUser().name;
                     const userAvtars = select('core').getCurrentUser().avatar_urls;
@@ -107,9 +109,9 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                       patternResult = true;
                     }
 
-                    let filterContent = currentAttr.content;
+                    let filterContent = currentAttrContent;
                     if ( ! patternResult ) {
-                      filterContent = currentAttr.content.replace(/<\/?ins[^>]*>/g,"").replace(/<\/?del[^>]*>/g,"");
+                      filterContent = currentAttrContent.replace(/<\/?ins[^>]*>/g,"").replace(/<\/?del[^>]*>/g,"");
                     }
 
                     let objClientId = oldClientId;
@@ -128,7 +130,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                       let ignoreCleanUp = false;
                       let isComment = false;
 
-                      if ( '' !== currentAttr.content ) {
+                      if ( '' !== currentAttrContent ) {
                         for ( let v = 0; v < diff.length; v++) {
 
                           let operation = diff[v][0];
@@ -201,7 +203,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                             let prevDiff = diff[v-1] ? diff[v-1][1].slice(-1) : '';
                             let nextDiff = diff[v+1] ? diff[v+1][1].substring(0,3) : '';
                             let currentLastdiff = diff[v][1].slice(-1);
-                            if ( ( ( 'ins' === currentDiff || 'del' === currentDiff ) && '<' === prevDiff ) && ( ( 'ins' === nextDiff || 'del' ) && '<' === currentLastdiff ) ) {
+                            if ( ( ( 'ins' === currentDiff || 'del' === currentDiff ) && '<' === prevDiff ) && ( ( 'ins' === nextDiff || 'del' === nextDiff || '/li' === nextDiff ) && '<' === currentLastdiff ) ) {
                               let prevLastIndex = diff[v-1][1].lastIndexOf(prevDiff);
                               let currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
                               diff[v-1][1] = diff[v-1][1].substring(0,prevLastIndex);
@@ -218,6 +220,17 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                 isComment = true;
                               }
 
+                            } else if ( DiffMatchPatch.DIFF_INSERT === operation && null !== diff[v][1].match(/<li>(.*)<\/li>$/) ) {
+                              ignoreCleanUp = true;
+                            } else if ( DiffMatchPatch.DIFF_INSERT === operation && null !== diff[v][1].match(/<\/li><li>$/) ) {
+                              let prevListLastTag = diff[v-1] ? diff[v-1][1].slice(-4) : '';
+                              let currentListLastTag = diff[v] ? diff[v][1].slice(-4) : '';
+                              if ( '<li>' === prevListLastTag && '<li>' === currentListLastTag && diff[v+1] ) {
+                                diff[v-1][1] = diff[v-1][1].substring(0, diff[v-1][1].lastIndexOf(prevListLastTag));
+                                diff[v][1] = currentListLastTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(currentListLastTag));
+                                diff[v+1][1] = prevListLastTag + diff[v+1][1];
+                                ignoreCleanUp = true;
+                              }
                             }
                             diffText = diffText.replace(/<\/?ins[^>]*>/g,"").replace(/<\/?del[^>]*>/g,"");
 
@@ -265,7 +278,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                           let op = diff[x][0];
                           let text = diff[x][1];
                           let tagFound = false;
-                          if ( ( patternResult || matchRegex ) && DiffMatchPatch.DIFF_EQUAL !== op && '' !== currentAttr.content ) {
+                          if ( ( patternResult || matchRegex ) && DiffMatchPatch.DIFF_EQUAL !== op && '' !== currentAttrContent ) {
                             text = text.replace(/<\/?ins[^>]*>/g,"").replace(/<\/?del[^>]*>/g,"");
                             if ( ! isFormating ) {
                               for ( let h = 0; h < tagArray.length; h++ ) {
@@ -307,7 +320,13 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                 nextFomatingIndex = 0;
                                 html[x] = text;
                               } else {
-                                html[x] = '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text + '</ins>';
+                                if ( null !== text.match(/<li><\/li>$/) ) {
+                                  html[x] = text;
+                                } else if ( null !== text.match(/<li>(.*)<\/li>$/) ) {
+                                  html[x] = '<li><ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text.replace(/<\/?li[^>]*>/g,'') + '</ins></li>';
+                                } else {
+                                  html[x] = '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text + '</ins>';
+                                }
                                 let tempObject = {};
                                 if ( isFormating && '' !== formatTagName ) {
                                   tempObject[uniqueId] = [{'name' : userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime}];
@@ -432,11 +451,11 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                           }
                         }
                         if ( '' !== finalDiff ) {
-                          setAttributes({content: finalDiff});
+                          'core/list' === finalBlockProps.name  ? setAttributes({values: finalDiff}) : setAttributes({content: finalDiff});
                           wp.data.dispatch('core/editor').editPost({meta: {sb_suggestion_history: JSON.stringify(suggestionHistory) } });
                         }
                       } else {
-                        beforeChangeContent[clientId] = currentAttr.content;
+                        beforeChangeContent[clientId] = currentAttrContent;
                       }
                     }
                   }
@@ -450,10 +469,10 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
 
     addEvents() {
       const _this = this;
-      jQuery(document).on('keyup', '.wp-block-paragraph', function () {
+      jQuery(document).on('keyup', '.wp-block[data-type="core/paragraph"], .wp-block[data-type="core/heading"], .wp-block[data-type="core/list"]', function () {
         _this.activeSuggestionBox(jQuery(this));
       });
-      jQuery(document).on('mouseup', '.wp-block-paragraph', function () {
+      jQuery(document).on('mouseup', '.wp-block[data-type="core/paragraph"], .wp-block[data-type="core/heading"], .wp-block[data-type="core/list"]', function () {
         _this.activeSuggestionBox(jQuery(this));
       });
       jQuery(document).on('click', '#md-suggestion-comments .cls-board-outer:not(".focus")', function (e) {
@@ -492,7 +511,8 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
     renderAllSuggestion( displayHistory, commentNode ) {
 
       const { attributes, clientId } = this.props;
-      const { oldClientId, content } = attributes;
+      const { oldClientId } = attributes;
+      const content = 'core/list' === this.props.name ? attributes.values : attributes.content;
 
       let suggestionChildKey = Object.keys( displayHistory[oldClientId] );
       let clientIdNode = document.getElementById(oldClientId);

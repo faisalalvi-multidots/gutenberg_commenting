@@ -581,7 +581,7 @@ addFilter('blocks.registerBlockType', 'md/suggestionBlockAttributes', addCustomA
 
 function addCustomAttributes(settings, name) {
 
-    if ('core/paragraph' === name) {
+    if ('core/paragraph' === name || 'core/heading' === name || 'core/list' === name) {
         if (settings.attributes) {
             settings.attributes.oldClientId = {
                 type: 'string',
@@ -1443,7 +1443,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
     }, {
       key: 'componentDidUpdate',
       value: function componentDidUpdate(prevProps) {
-        if ('core/paragraph' === this.props.name) {
+        if ('core/paragraph' === this.props.name || 'core/heading' === this.props.name || 'core/list' === this.props.name) {
           var _props = this.props,
               attributes = _props.attributes,
               setAttributes = _props.setAttributes,
@@ -1459,7 +1459,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
               var editRecord = select('core').getUndoEdit();
               var currentBlockIndex = select('core/block-editor').getBlockIndex(clientId);
               var finalBlockProps = void 0;
-              if (editRecord && editRecord.edits && editRecord.edits.blocks) {
+              if (editRecord && editRecord.edits && editRecord.edits.blocks && 0 < editRecord.edits.blocks.length) {
                 if (-1 === currentBlockIndex) {
                   var blockParents = select('core/block-editor').getBlockParents(clientId);
                   if (0 < blockParents.length) {
@@ -1480,15 +1480,17 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                 } else {
                   finalBlockProps = editRecord.edits.blocks[currentBlockIndex];
                 }
-                if (finalBlockProps.name === 'core/paragraph') {
-                  var attr = finalBlockProps.attributes;
-                  var currentAttr = select('core/block-editor').getBlockAttributes(clientId);
-                  if ('' === currentAttr.content || currentNewContent !== currentAttr.content) {
+                if ('core/paragraph' === finalBlockProps.name || 'core/heading' === finalBlockProps.name || 'core/list' === finalBlockProps.name) {
+                  var oldAttrContent = 'core/list' === finalBlockProps.name ? finalBlockProps.attributes.values : finalBlockProps.attributes.content;
+                  var currentAttrContent = 'core/list' === finalBlockProps.name ? select('core/block-editor').getBlockAttributes(clientId).values : select('core/block-editor').getBlockAttributes(clientId).content;
+                  if ('' === currentAttrContent || currentNewContent !== currentAttrContent) {
                     displayInitialSuggestion = false;
                     if (0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId]) {
-                      beforeChangeContent[clientId] = attr.content;
+                      beforeChangeContent[clientId] = oldAttrContent;
+                    } else if ('core/list' === finalBlockProps.name && currentAttrContent.match(/<li><\/li>/)) {
+                      beforeChangeContent[clientId] = oldAttrContent;
                     }
-                    if (currentAttr.content !== attr.content) {
+                    if (currentAttrContent !== oldAttrContent) {
                       var currentUser = select('core').getCurrentUser().id;
                       var userName = select('core').getCurrentUser().name;
                       var userAvtars = select('core').getCurrentUser().avatar_urls;
@@ -1507,9 +1509,9 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                         patternResult = true;
                       }
 
-                      var filterContent = currentAttr.content;
+                      var filterContent = currentAttrContent;
                       if (!patternResult) {
-                        filterContent = currentAttr.content.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
+                        filterContent = currentAttrContent.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
                       }
 
                       var objClientId = oldClientId;
@@ -1528,7 +1530,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                         var ignoreCleanUp = false;
                         var isComment = false;
 
-                        if ('' !== currentAttr.content) {
+                        if ('' !== currentAttrContent) {
                           for (var v = 0; v < diff.length; v++) {
 
                             var operation = diff[v][0];
@@ -1601,7 +1603,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                               var prevDiff = diff[v - 1] ? diff[v - 1][1].slice(-1) : '';
                               var nextDiff = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
                               var currentLastdiff = diff[v][1].slice(-1);
-                              if (('ins' === currentDiff || 'del' === currentDiff) && '<' === prevDiff && ('ins' === nextDiff || 'del') && '<' === currentLastdiff) {
+                              if (('ins' === currentDiff || 'del' === currentDiff) && '<' === prevDiff && ('ins' === nextDiff || 'del' === nextDiff || '/li' === nextDiff) && '<' === currentLastdiff) {
                                 var prevLastIndex = diff[v - 1][1].lastIndexOf(prevDiff);
                                 var currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
                                 diff[v - 1][1] = diff[v - 1][1].substring(0, prevLastIndex);
@@ -1616,6 +1618,17 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                   diff[v + 2][0] = 0;
                                   diff[v + 2][1] = '';
                                   isComment = true;
+                                }
+                              } else if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation && null !== diff[v][1].match(/<li>(.*)<\/li>$/)) {
+                                ignoreCleanUp = true;
+                              } else if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation && null !== diff[v][1].match(/<\/li><li>$/)) {
+                                var prevListLastTag = diff[v - 1] ? diff[v - 1][1].slice(-4) : '';
+                                var currentListLastTag = diff[v] ? diff[v][1].slice(-4) : '';
+                                if ('<li>' === prevListLastTag && '<li>' === currentListLastTag && diff[v + 1]) {
+                                  diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(prevListLastTag));
+                                  diff[v][1] = currentListLastTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(currentListLastTag));
+                                  diff[v + 1][1] = prevListLastTag + diff[v + 1][1];
+                                  ignoreCleanUp = true;
                                 }
                               }
                               diffText = diffText.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
@@ -1664,7 +1677,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                             var op = diff[x][0];
                             var text = diff[x][1];
                             var tagFound = false;
-                            if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttr.content) {
+                            if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttrContent) {
                               text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
                               if (!isFormating) {
                                 for (var h = 0; h < tagArray.length; h++) {
@@ -1706,7 +1719,13 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                   nextFomatingIndex = 0;
                                   html[x] = text;
                                 } else {
-                                  html[x] = '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text + '</ins>';
+                                  if (null !== text.match(/<li><\/li>$/)) {
+                                    html[x] = text;
+                                  } else if (null !== text.match(/<li>(.*)<\/li>$/)) {
+                                    html[x] = '<li><ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text.replace(/<\/?li[^>]*>/g, '') + '</ins></li>';
+                                  } else {
+                                    html[x] = '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text + '</ins>';
+                                  }
                                   var tempObject = {};
                                   if (isFormating && '' !== formatTagName) {
                                     tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime }];
@@ -1827,11 +1846,11 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                             }
                           }
                           if ('' !== finalDiff) {
-                            setAttributes({ content: finalDiff });
+                            'core/list' === finalBlockProps.name ? setAttributes({ values: finalDiff }) : setAttributes({ content: finalDiff });
                             wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
                           }
                         } else {
-                          beforeChangeContent[clientId] = currentAttr.content;
+                          beforeChangeContent[clientId] = currentAttrContent;
                         }
                       }
                     }
@@ -1846,10 +1865,10 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
       key: 'addEvents',
       value: function addEvents() {
         var _this = this;
-        jQuery(document).on('keyup', '.wp-block-paragraph', function () {
+        jQuery(document).on('keyup', '.wp-block[data-type="core/paragraph"], .wp-block[data-type="core/heading"], .wp-block[data-type="core/list"]', function () {
           _this.activeSuggestionBox(jQuery(this));
         });
-        jQuery(document).on('mouseup', '.wp-block-paragraph', function () {
+        jQuery(document).on('mouseup', '.wp-block[data-type="core/paragraph"], .wp-block[data-type="core/heading"], .wp-block[data-type="core/list"]', function () {
           _this.activeSuggestionBox(jQuery(this));
         });
         jQuery(document).on('click', '#md-suggestion-comments .cls-board-outer:not(".focus")', function (e) {
@@ -1891,9 +1910,9 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
         var _props2 = this.props,
             attributes = _props2.attributes,
             clientId = _props2.clientId;
-        var oldClientId = attributes.oldClientId,
-            content = attributes.content;
+        var oldClientId = attributes.oldClientId;
 
+        var content = 'core/list' === this.props.name ? attributes.values : attributes.content;
 
         var suggestionChildKey = Object.keys(displayHistory[oldClientId]);
         var clientIdNode = document.getElementById(oldClientId);

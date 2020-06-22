@@ -495,7 +495,7 @@ addFilter( 'blocks.registerBlockType', 'md/suggestionBlockAttributes', addCustom
 
 function addCustomAttributes( settings, name ) {
 
-  if ( 'core/paragraph' === name ) {
+  if ( 'core/paragraph' === name || 'core/heading' === name || 'core/list' === name ) {
     if ( settings.attributes ) {
       settings.attributes.oldClientId = {
         type: 'string',
