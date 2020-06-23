@@ -461,7 +461,7 @@ const mdComment = {
                     <RichTextToolbarButton
                         title={__('Comment')}
                         isActive={isActive}
-                        icon="admin-links"
+                        icon="admin-comments"
                         onClick={this.onToggle}
                         shortcutType="primary"
                         shortcutCharacter="m"
