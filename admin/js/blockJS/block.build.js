@@ -1006,6 +1006,7 @@ var Comment = function (_React$Component) {
         _this.remove = _this.remove.bind(_this);
         _this.resolve = _this.resolve.bind(_this);
         _this.cancelEdit = _this.cancelEdit.bind(_this);
+        _this.removeTag = _this.removeTag.bind(_this);
         _this.state = { editing: false, showEditedDraft: false };
         return _this;
     }
@@ -1072,17 +1073,45 @@ var Comment = function (_React$Component) {
                     lastVal = _props2.lastVal,
                     onChanged = _props2.onChanged;
 
+
+                this.removeTag(elIDRemove);
+
                 //if (null === lastVal || undefined === onChanged) {
-
-                jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
-
-                var removedComments = jQuery('body').attr('remove-comment');
+                /*jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
+                 let removedComments = jQuery('body').attr('remove-comment');
                 removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
                 jQuery('body').attr('remove-comment', removedComments);
-                jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
+                jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');*/
                 /*} else {
                     onChanged(removeFormat(lastVal, name));
                 }*/
+            }
+        }
+    }, {
+        key: 'removeTag',
+        value: function removeTag(elIDRemove) {
+
+            var clientId = jQuery('[datatext="' + elIDRemove + '"]').parents('[data-block]').attr('data-block');
+
+            var blockAttributes = wp.data.select('core/block-editor').getBlockAttributes(clientId);
+            var content = blockAttributes.content;
+
+            if ('' !== content) {
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+                var childElements = tempDiv.getElementsByTagName('mdspan');
+                for (var i = 0; i < childElements.length; i++) {
+                    if (elIDRemove === childElements[i].attributes.datatext.value) {
+                        childElements[i].parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                        var finalContent = tempDiv.innerHTML;
+                        wp.data.dispatch('core/editor').updateBlock(clientId, {
+                            attributes: {
+                                content: finalContent
+                            }
+                        });
+                        break;
+                    }
+                }
             }
         }
     }, {
