@@ -123,6 +123,12 @@ export default class Comment extends React.Component {
         }
 
         let str = this.state.showEditedDraft ? this.props.editedDraft : this.props.children;
+        let readmoreStr = '';
+        const maxLength = 100;
+        if(maxLength < str.length) {
+            readmoreStr = str;
+            str = str.substring(0, maxLength) + '...';
+        }
 
         return (
             <div className={"commentContainer " + commentStatus} id={this.props.timestamp}>
@@ -165,7 +171,10 @@ export default class Comment extends React.Component {
                         </Fragment>
                     </div>
                 </div>
-                <div className="commentText">{str}</div>
+                <div className="commentText">
+                    <span className='readlessTxt readMoreSpan active'>{str} {'' !== readmoreStr && <a className='readmoreComment' href='javascript:void(0)'>read more</a>}</span>
+                    <span className='readmoreTxt readMoreSpan'>{readmoreStr} {'' !== readmoreStr && <a className='readlessComment' href='javascript:void(0)'>show less</a>}</span>
+                </div>
             </div>
         );
     }

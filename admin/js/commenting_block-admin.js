@@ -113,6 +113,10 @@
             });
         });
 
+        // Read More Comments
+        $(document).on('click', '.readmoreComment, .readlessComment', function () {
+            $(this).parents('.commentText').find('.readMoreSpan').toggleClass('active');
+        });
 
     });
 

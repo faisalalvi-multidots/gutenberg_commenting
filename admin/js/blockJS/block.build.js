@@ -1136,6 +1136,12 @@ var Comment = function (_React$Component) {
             }
 
             var str = this.state.showEditedDraft ? this.props.editedDraft : this.props.children;
+            var readmoreStr = '';
+            var maxLength = 100;
+            if (maxLength < str.length) {
+                readmoreStr = str;
+                str = str.substring(0, maxLength) + '...';
+            }
 
             return wp.element.createElement(
                 'div',
@@ -1208,7 +1214,28 @@ var Comment = function (_React$Component) {
                 wp.element.createElement(
                     'div',
                     { className: 'commentText' },
-                    str
+                    wp.element.createElement(
+                        'span',
+                        { className: 'readlessTxt readMoreSpan active' },
+                        str,
+                        ' ',
+                        '' !== readmoreStr && wp.element.createElement(
+                            'a',
+                            { className: 'readmoreComment', href: 'javascript:void(0)' },
+                            'read more'
+                        )
+                    ),
+                    wp.element.createElement(
+                        'span',
+                        { className: 'readmoreTxt readMoreSpan' },
+                        readmoreStr,
+                        ' ',
+                        '' !== readmoreStr && wp.element.createElement(
+                            'a',
+                            { className: 'readlessComment', href: 'javascript:void(0)' },
+                            'show less'
+                        )
+                    )
                 )
             );
         }
