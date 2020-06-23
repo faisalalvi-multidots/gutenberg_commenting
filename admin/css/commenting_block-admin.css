@@ -96,7 +96,9 @@ div#Div1 {
 
 .boardTop {
 }
-
+mdspan{
+  background:#fdf0b6;
+}
 .cls-board-outer {
   position: relative;
   left: 0;

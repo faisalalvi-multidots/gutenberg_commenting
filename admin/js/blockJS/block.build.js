@@ -336,8 +336,7 @@ var mdComment = {
     tagName: 'mdspan',
     className: 'mdspan-comment',
     attributes: {
-        datatext: 'datatext',
-        style: 'style'
+        datatext: 'datatext'
     },
     edit: function (_Component) {
         _inherits(myClass, _Component);
@@ -386,7 +385,7 @@ var mdComment = {
 
                 onChange(toggleFormat(value, { type: name }), ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__component_board__["a" /* default */], { datatext: currentTime, onChanged: onChange, lastVal: value, freshBoard: 1, commentedOnText: commentedOnText }), document.getElementById(currentTime)));
 
-                onChange(applyFormat(value, { type: name, attributes: { datatext: currentTime, style: 'background:#fdf0b6' } }));
+                onChange(applyFormat(value, { type: name, attributes: { datatext: currentTime } }));
 
                 this.latestBoard = currentTime;
                 this.latestValue = value;
