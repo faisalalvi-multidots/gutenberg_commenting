@@ -12,6 +12,7 @@ export default class Comment extends React.Component {
         this.remove = this.remove.bind(this);
         this.resolve = this.resolve.bind(this);
         this.cancelEdit = this.cancelEdit.bind(this);
+        this.removeTag = this.removeTag.bind(this);
         this.state = {editing: false, showEditedDraft: false};
     }
 
@@ -67,16 +68,43 @@ export default class Comment extends React.Component {
 
             const {lastVal, onChanged} = this.props;
 
+            this.removeTag(elIDRemove);
+
             //if (null === lastVal || undefined === onChanged) {
-                jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
+                /*jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
 
                 let removedComments = jQuery('body').attr('remove-comment');
                 removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
                 jQuery('body').attr('remove-comment', removedComments);
-                jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');
+                jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');*/
             /*} else {
                 onChanged(removeFormat(lastVal, name));
             }*/
+        }
+    }
+
+    removeTag(elIDRemove) {
+
+        const clientId = jQuery('[datatext="' + elIDRemove + '"]').parents('[data-block]').attr('data-block');
+
+        const blockAttributes = wp.data.select('core/block-editor').getBlockAttributes(clientId);
+        const { content } = blockAttributes;
+        if ( '' !== content ) {
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            let childElements = tempDiv.getElementsByTagName('mdspan');
+            for ( let i = 0; i < childElements.length; i++ ) {
+                if ( elIDRemove === childElements[i].attributes.datatext.value ) {
+                    childElements[i].parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
+                    let finalContent = tempDiv.innerHTML;
+                    wp.data.dispatch( 'core/editor' ).updateBlock( clientId, {
+                        attributes: {
+                            content: finalContent
+                        }
+                    });
+                    break;
+                }
+            }
         }
     }
 
@@ -95,6 +123,12 @@ export default class Comment extends React.Component {
         }
 
         let str = this.state.showEditedDraft ? this.props.editedDraft : this.props.children;
+        let readmoreStr = '';
+        const maxLength = 100;
+        if(maxLength < str.length) {
+            readmoreStr = str;
+            str = str.substring(0, maxLength) + '...';
+        }
 
         return (
             <div className={"commentContainer " + commentStatus} id={this.props.timestamp}>
@@ -137,7 +171,10 @@ export default class Comment extends React.Component {
                         </Fragment>
                     </div>
                 </div>
-                <div className="commentText">{str}</div>
+                <div className="commentText">
+                    <span className='readlessTxt readMoreSpan active'>{str} {'' !== readmoreStr && <a className='readmoreComment' href='javascript:void(0)'>read more</a>}</span>
+                    <span className='readmoreTxt readMoreSpan'>{readmoreStr} {'' !== readmoreStr && <a className='readlessComment' href='javascript:void(0)'>show less</a>}</span>
+                </div>
             </div>
         );
     }

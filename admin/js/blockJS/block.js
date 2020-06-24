@@ -254,8 +254,7 @@ const mdComment = {
     tagName: 'mdspan',
     className: 'mdspan-comment',
     attributes: {
-        datatext: 'datatext',
-        style: 'style'
+        datatext: 'datatext'
     },
     edit: (class myClass extends Component {
         constructor(props) {
@@ -297,7 +296,7 @@ const mdComment = {
                 )
             );
 
-            onChange(applyFormat(value, {type: name, attributes: {datatext: currentTime, style: 'background:#fdf0b6'}}));
+            onChange(applyFormat(value, {type: name, attributes: {datatext: currentTime}}));
 
             this.latestBoard = currentTime;
             this.latestValue = value;
@@ -462,7 +461,7 @@ const mdComment = {
                     <RichTextToolbarButton
                         title={__('Comment')}
                         isActive={isActive}
-                        icon="admin-links"
+                        icon="admin-comments"
                         onClick={this.onToggle}
                         shortcutType="primary"
                         shortcutCharacter="m"

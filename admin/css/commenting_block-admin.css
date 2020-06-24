@@ -96,7 +96,15 @@ div#Div1 {
 
 .boardTop {
 }
-
+mdspan{
+  background:#fdf0b6;
+}
+.readMoreSpan{
+  display: none;
+}
+.readMoreSpan.active{
+  display: block;
+}
 .cls-board-outer {
   position: relative;
   left: 0;
