@@ -45,7 +45,9 @@ export default class SuggestionComment extends React.Component {
   removeSuggestion() {
     const { clientId, suggestionID } = this.props;
     const blockAttributes = wp.data.select('core/block-editor').getBlockAttributes(clientId);
-    const { oldClientId, content } = blockAttributes;
+    const { oldClientId } = blockAttributes;
+    const content = undefined !== blockAttributes.content ? blockAttributes.content : blockAttributes.values;
+
     if ( '' !== oldClientId && '' !== content ) {
       let suggestionHistory = wp.data.select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_suggestion_history'];
       if ( 0 < suggestionHistory.length ) {
@@ -70,13 +72,24 @@ export default class SuggestionComment extends React.Component {
                 //tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
                 childElements[i].parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
               }
+
               delete suggestionHistory[oldClientId][suggestionID];
               let finalContent = tempDiv.innerHTML;
-              wp.data.dispatch( 'core/editor' ).updateBlock( clientId, {
-                attributes: {
-                  content: finalContent
-                }
-              });
+
+              if ( undefined !== blockAttributes.content ) {
+                wp.data.dispatch( 'core/editor' ).updateBlock( clientId, {
+                  attributes: {
+                    content: finalContent
+                  }
+                });
+              } else {
+                wp.data.dispatch( 'core/editor' ).updateBlock( clientId, {
+                  attributes: {
+                    values: finalContent
+                  }
+                });
+              }
+
               document.getElementById('sg' + suggestionID ).remove();
               wp.data.dispatch('core/editor').editPost({meta: {sb_suggestion_history: JSON.stringify(suggestionHistory) } });
               break;
@@ -90,7 +103,8 @@ export default class SuggestionComment extends React.Component {
   acceptSuggestion() {
     const { clientId, suggestionID } = this.props;
     const blockAttributes = wp.data.select('core/block-editor').getBlockAttributes(clientId);
-    const { oldClientId, content } = blockAttributes;
+    const { oldClientId } = blockAttributes;
+    const content = undefined !== blockAttributes.content ? blockAttributes.content : blockAttributes.values;
     if ( '' !== oldClientId && '' !== content ) {
       let suggestionHistory = wp.data.select( 'core/editor' ).getEditedPostAttribute( 'meta' )['sb_suggestion_history'];
       if ( 0 < suggestionHistory.length ) {
@@ -117,11 +131,21 @@ export default class SuggestionComment extends React.Component {
               }
               delete suggestionHistory[oldClientId][suggestionID];
               let finalContent = tempDiv.innerHTML;
-              wp.data.dispatch( 'core/editor' ).updateBlock( clientId, {
-                attributes: {
-                  content: finalContent
-                }
-              });
+
+              if ( undefined !== blockAttributes.content ) {
+                wp.data.dispatch( 'core/editor' ).updateBlock( clientId, {
+                  attributes: {
+                    content: finalContent
+                  }
+                });
+              } else {
+                wp.data.dispatch( 'core/editor' ).updateBlock( clientId, {
+                  attributes: {
+                    values: finalContent
+                  }
+                });
+              }
+
               document.getElementById('sg' + suggestionID ).remove();
               wp.data.dispatch('core/editor').editPost({meta: {sb_suggestion_history: JSON.stringify(suggestionHistory) } });
               break;

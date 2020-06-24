@@ -1480,377 +1480,477 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                 } else {
                   finalBlockProps = editRecord.edits.blocks[currentBlockIndex];
                 }
-                if ('core/paragraph' === finalBlockProps.name || 'core/heading' === finalBlockProps.name || 'core/list' === finalBlockProps.name) {
-                  var oldAttrContent = 'core/list' === finalBlockProps.name ? finalBlockProps.attributes.values : finalBlockProps.attributes.content;
-                  var currentAttrContent = 'core/list' === finalBlockProps.name ? select('core/block-editor').getBlockAttributes(clientId).values : select('core/block-editor').getBlockAttributes(clientId).content;
-                  if ('' === currentAttrContent || currentNewContent !== currentAttrContent) {
-                    displayInitialSuggestion = false;
-                    if (0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId]) {
-                      beforeChangeContent[clientId] = oldAttrContent;
-                    } else if ('core/list' === finalBlockProps.name && currentAttrContent.match(/<li><\/li>/)) {
-                      beforeChangeContent[clientId] = oldAttrContent;
-                    }
-                    if (currentAttrContent !== oldAttrContent) {
-                      var currentUser = select('core').getCurrentUser().id;
-                      var userName = select('core').getCurrentUser().name;
-                      var userAvtars = select('core').getCurrentUser().avatar_urls;
-                      var avtarUrl = userAvtars[Object.keys(userAvtars)[1]];
-
-                      if (0 < suggestionHistory.length) {
-                        suggestionHistory = JSON.parse(suggestionHistory);
+                if (undefined !== finalBlockProps) {
+                  if ('core/paragraph' === finalBlockProps.name || 'core/heading' === finalBlockProps.name || 'core/list' === finalBlockProps.name) {
+                    var oldAttrContent = 'core/list' === finalBlockProps.name ? finalBlockProps.attributes.values : finalBlockProps.attributes.content;
+                    var currentAttrContent = 'core/list' === finalBlockProps.name ? select('core/block-editor').getBlockAttributes(clientId).values : select('core/block-editor').getBlockAttributes(clientId).content;
+                    if ('' === currentAttrContent || currentNewContent !== currentAttrContent) {
+                      displayInitialSuggestion = false;
+                      if (0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId]) {
+                        beforeChangeContent[clientId] = oldAttrContent;
+                      } else if ('core/list' === finalBlockProps.name && currentAttrContent.match(/<li><\/li>/)) {
+                        beforeChangeContent[clientId] = oldAttrContent;
                       }
+                      if (currentAttrContent !== oldAttrContent) {
+                        var currentUser = select('core').getCurrentUser().id;
+                        var userName = select('core').getCurrentUser().name;
+                        var userAvtars = select('core').getCurrentUser().avatar_urls;
+                        var avtarUrl = userAvtars[Object.keys(userAvtars)[1]];
 
-                      var insRegPattern = /<(ins|\/ins)/g;
-                      var delRegPattern = /<(del|\/del)/g;
-                      var patternResult = false;
-                      if (insRegPattern.test(beforeChangeContent[clientId])) {
-                        patternResult = true;
-                      } else if (delRegPattern.test(beforeChangeContent[clientId])) {
-                        patternResult = true;
-                      }
+                        if (0 < suggestionHistory.length) {
+                          suggestionHistory = JSON.parse(suggestionHistory);
+                        }
 
-                      var filterContent = currentAttrContent;
-                      if (!patternResult) {
-                        filterContent = currentAttrContent.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
-                      }
+                        var insRegPattern = /<(ins|\/ins)/g;
+                        var delRegPattern = /<(del|\/del)/g;
+                        var patternResult = false;
+                        if (insRegPattern.test(beforeChangeContent[clientId])) {
+                          patternResult = true;
+                        } else if (delRegPattern.test(beforeChangeContent[clientId])) {
+                          patternResult = true;
+                        }
 
-                      var objClientId = oldClientId;
+                        var filterContent = currentAttrContent;
+                        if (!patternResult) {
+                          filterContent = currentAttrContent.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
+                        }
 
-                      if ('' === oldClientId) {
-                        setAttributes({ oldClientId: clientId });
-                        objClientId = clientId;
-                      }
+                        var objClientId = oldClientId;
 
-                      var diff = dmp.diff_main(beforeChangeContent[clientId], filterContent);
+                        if ('' === oldClientId) {
+                          setAttributes({ oldClientId: clientId });
+                          objClientId = clientId;
+                        }
 
-                      if (0 < diff.length) {
-                        var tagArray = ['strong', 'em', 'a', 's', 'code', 'span'];
-                        var formatName = { 'strong': 'bold', 'em': 'italic', 's': 'strikethrough', 'span': 'underline', 'code': 'code', 'a': 'link' };
-                        var matchRegex = false;
-                        var ignoreCleanUp = false;
-                        var isComment = false;
+                        var diff = dmp.diff_main(beforeChangeContent[clientId], filterContent);
 
-                        if ('' !== currentAttrContent) {
-                          for (var v = 0; v < diff.length; v++) {
+                        if (0 < diff.length) {
+                          var tagArray = ['strong', 'em', 'a', 's', 'code', 'span'];
+                          var formatName = {
+                            'strong': 'bold',
+                            'em': 'italic',
+                            's': 'strikethrough',
+                            'span': 'underline',
+                            'code': 'code',
+                            'a': 'link'
+                          };
+                          var matchRegex = false;
+                          var ignoreCleanUp = false;
+                          var isComment = false;
 
-                            var operation = diff[v][0];
-                            var diffText = diff[v][1];
+                          if ('' !== currentAttrContent) {
+                            for (var v = 0; v < diff.length; v++) {
+                              console.log(diff[v][1]);
+                              var operation = diff[v][0];
+                              var diffText = diff[v][1];
 
-                            if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
-                              var nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 6) : '';
-                              if ('</del>' === nextDiffText) {
-                                if (0 === diff[v + 1][0] && diff[v - 1]) {
-                                  diff[v + 1][1] = diff[v + 1][1].substring(6);
-                                  diff[v - 1][1] += nextDiffText;
-                                }
-                              } else {
-                                nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 20) : '';
-                                var diffMatchPattern = /<\/del>/;
-                                var prevLastChar = diff[v - 1] ? diff[v - 1][1].slice(-3) : '';
-                                var prevTagIndex = diff[v - 1] ? diff[v - 1][1].lastIndexOf('<del') : -1;
-                                if (-1 !== prevTagIndex && ';">' === prevLastChar && diffMatchPattern.test(nextDiffText)) {
-                                  var lastDelTag = diff[v - 1][1].substring(prevTagIndex);
-                                  diff[v - 1][1] = diff[v - 1][1].substring(0, prevTagIndex);
-                                  diff[v + 1][1] = lastDelTag + diff[v + 1][1];
+                              if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
+                                var nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 6) : '';
+                                if ('</del>' === nextDiffText) {
+                                  if (0 === diff[v + 1][0] && diff[v - 1]) {
+                                    diff[v + 1][1] = diff[v + 1][1].substring(6);
+                                    diff[v - 1][1] += nextDiffText;
+                                  }
+                                } else {
+                                  nextDiffText = diff[v + 1] ? diff[v + 1][1].substring(0, 20) : '';
+                                  var diffMatchPattern = /<\/del>/;
+                                  var prevLastChar = diff[v - 1] ? diff[v - 1][1].slice(-3) : '';
+                                  var prevTagIndex = diff[v - 1] ? diff[v - 1][1].lastIndexOf('<del') : -1;
+                                  if (-1 !== prevTagIndex && ';">' === prevLastChar && diffMatchPattern.test(nextDiffText)) {
+                                    var lastDelTag = diff[v - 1][1].substring(prevTagIndex);
+                                    diff[v - 1][1] = diff[v - 1][1].substring(0, prevTagIndex);
+                                    diff[v + 1][1] = lastDelTag + diff[v + 1][1];
+                                  }
                                 }
                               }
-                            }
 
-                            var diffCurrentLastTag = diff[v][1].slice(-5);
-                            var missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
-                            var diffNextCloseTag = diff[v + 1] ? diff[v + 1][1].substring(0, 1) : '';
-                            var diffNextTagId = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
-                            var diffCommentNode = diff[v][1].slice(-8);
-                            var diffCommentLastNode = diff[v + 2] ? diff[v + 2][1].substring(0, 6) : '';
+                              var diffCurrentLastTag = diff[v][1].slice(-5);
+                              var missingCurrentLastTag = diff[v][1].match(/<ins id="[\d]{0,1}$/);
+                              var diffNextCloseTag = diff[v + 1] ? diff[v + 1][1].substring(0, 1) : '';
+                              var diffNextTagId = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
+                              var diffCommentNode = diff[v][1].slice(-8);
+                              var diffCommentLastNode = diff[v + 2] ? diff[v + 2][1].substring(0, 6) : '';
 
-                            if (('</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag) && '>' === diffNextCloseTag) {
-                              diff[v][1] += diffNextCloseTag;
-                              diff[v + 1][1] = diff[v + 1][1].substring(1);
-                              ignoreCleanUp = true;
-                            } else if ('<ins ' === diffCurrentLastTag && 'id=' === diffNextTagId) {
-                              diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrentLastTag));
-                              diff[v + 1][1] = diffCurrentLastTag + diff[v + 1][1];
-                              ignoreCleanUp = true;
-                            } else if (null !== missingCurrentLastTag) {
-                              diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missingCurrentLastTag));
-                              diff[v + 1][1] = missingCurrentLastTag + diff[v + 1][1];
-                              ignoreCleanUp = true;
-                            } else if (null !== diff[v][1].match(/<del id="[\d]{0,1}$/)) {
-                              var missDelLastTag = diff[v][1].match(/<del id="[\d]{0,1}$/);
-                              diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
-                              diff[v + 1][1] = missDelLastTag + diff[v + 1][1];
-                              ignoreCleanUp = true;
-                            } else if (null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag) {
-                              var diffNextOfNext = diff[v + 2] ? diff[v + 2][1] : '';
-                              if (1 === diffNextCloseTag.length && '' !== diffNextOfNext) {
-                                var matchDelTag = diff[v][1].match(/<del id=".*">$/);
-                                diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(matchDelTag));
-                                diff[v + 2][1] = matchDelTag + diff[v + 2][1];
+                              if (('</del' === diffCurrentLastTag || '</ins' === diffCurrentLastTag) && '>' === diffNextCloseTag) {
+                                diff[v][1] += diffNextCloseTag;
+                                diff[v + 1][1] = diff[v + 1][1].substring(1);
                                 ignoreCleanUp = true;
-                              }
-                            } else if ('<mdspan ' === diffCommentNode && 'dat' === diffNextTagId && 'class=' === diffCommentLastNode) {
-                              diff[v + 1][0] = 0;
-                              ignoreCleanUp = true;
-                              isComment = true;
-                            } else if (' target=' === diff[v][1].substring(0, 8) && 'noopener"' === diff[v][1].slice(-9) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
-                              diff[v][0] = 0;
-                              diff[v][1] = __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation ? diff[v][1] : '';
-                            }
-
-                            if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
-
-                              var currentDiff = diff[v][1].substring(0, 3);
-                              var prevDiff = diff[v - 1] ? diff[v - 1][1].slice(-1) : '';
-                              var nextDiff = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
-                              var currentLastdiff = diff[v][1].slice(-1);
-                              if (('ins' === currentDiff || 'del' === currentDiff) && '<' === prevDiff && ('ins' === nextDiff || 'del' === nextDiff || '/li' === nextDiff) && '<' === currentLastdiff) {
-                                var prevLastIndex = diff[v - 1][1].lastIndexOf(prevDiff);
-                                var currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
-                                diff[v - 1][1] = diff[v - 1][1].substring(0, prevLastIndex);
-                                diff[v][1] = prevDiff + diff[v][1].substring(0, currentLastIndex);
-                                diff[v + 1][1] = currentLastdiff + diff[v + 1][1];
+                              } else if ('<ins ' === diffCurrentLastTag && 'id=' === diffNextTagId) {
+                                diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrentLastTag));
+                                diff[v + 1][1] = diffCurrentLastTag + diff[v + 1][1];
                                 ignoreCleanUp = true;
-                              } else if (null !== diff[v][1].match(/<mdspan (.*)">$/)) {
-                                var nextMdSpan = diff[v + 2] ? diff[v + 2][1] : '';
-                                if ('</mdspan>' === nextMdSpan) {
-                                  diff[v][0] = 0;
-                                  diff[v][1] = '';
-                                  diff[v + 2][0] = 0;
-                                  diff[v + 2][1] = '';
-                                  isComment = true;
-                                }
-                              } else if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation && null !== diff[v][1].match(/<li>(.*)<\/li>$/)) {
+                              } else if (null !== missingCurrentLastTag) {
+                                diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missingCurrentLastTag));
+                                diff[v + 1][1] = missingCurrentLastTag + diff[v + 1][1];
                                 ignoreCleanUp = true;
-                              } else if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation && null !== diff[v][1].match(/<\/li><li>$/)) {
-                                var prevListLastTag = diff[v - 1] ? diff[v - 1][1].slice(-4) : '';
-                                var currentListLastTag = diff[v] ? diff[v][1].slice(-4) : '';
-                                if ('<li>' === prevListLastTag && '<li>' === currentListLastTag && diff[v + 1]) {
-                                  diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(prevListLastTag));
-                                  diff[v][1] = currentListLastTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(currentListLastTag));
-                                  diff[v + 1][1] = prevListLastTag + diff[v + 1][1];
+                              } else if (null !== diff[v][1].match(/<del id="[\d]{0,1}$/)) {
+                                var missDelLastTag = diff[v][1].match(/<del id="[\d]{0,1}$/);
+                                diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
+                                diff[v + 1][1] = missDelLastTag + diff[v + 1][1];
+                                ignoreCleanUp = true;
+                              } else if (null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag) {
+                                var diffNextOfNext = diff[v + 2] ? diff[v + 2][1] : '';
+                                if (1 === diffNextCloseTag.length && '' !== diffNextOfNext) {
+                                  var matchDelTag = diff[v][1].match(/<del id=".*">$/);
+                                  diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(matchDelTag));
+                                  diff[v + 2][1] = matchDelTag + diff[v + 2][1];
                                   ignoreCleanUp = true;
                                 }
+                              } else if ('<mdspan ' === diffCommentNode && 'dat' === diffNextTagId && 'class=' === diffCommentLastNode) {
+                                diff[v + 1][0] = 0;
+                                ignoreCleanUp = true;
+                                isComment = true;
+                              } else if (' target=' === diff[v][1].substring(0, 8) && 'noopener"' === diff[v][1].slice(-9) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
+                                diff[v][0] = 0;
+                                diff[v][1] = __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation ? diff[v][1] : '';
                               }
-                              diffText = diffText.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
 
-                              for (var i = 0; i < tagArray.length; i++) {
-                                var dynamicRegex = void 0;
-                                if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
-                                  var tagMatchPattern = 'a' === tagArray[i] ? '<\/' + tagArray[i] + '>(.*)<' + tagArray[i] + ' (.*)>$' : '<\/' + tagArray[i] + '>(.*)<' + tagArray[i] + '>$';
-                                  var tagMatchPatternRegex = new RegExp(tagMatchPattern);
-                                  if (null !== diff[v][1].match(tagMatchPatternRegex)) {
-                                    var replaceTagPatter = '<\/?' + tagArray[i] + '[^>]*>';
-                                    var replaceTagRegex = new RegExp(replaceTagPatter, 'g');
-                                    diff[v][1] = diff[v][1].replace(replaceTagRegex, '');
+                              if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== operation) {
+
+                                var currentDiff = diff[v][1].substring(0, 3);
+                                var prevDiff = diff[v - 1] ? diff[v - 1][1].slice(-1) : '';
+                                var nextDiff = diff[v + 1] ? diff[v + 1][1].substring(0, 3) : '';
+                                var currentLastdiff = diff[v][1].slice(-1);
+                                if (('ins' === currentDiff || 'del' === currentDiff) && '<' === prevDiff && ('ins' === nextDiff || 'del' === nextDiff || '/li' === nextDiff) && '<' === currentLastdiff) {
+                                  var prevLastIndex = diff[v - 1][1].lastIndexOf(prevDiff);
+                                  var currentLastIndex = diff[v][1].lastIndexOf(currentLastdiff);
+                                  diff[v - 1][1] = diff[v - 1][1].substring(0, prevLastIndex);
+                                  diff[v][1] = prevDiff + diff[v][1].substring(0, currentLastIndex);
+                                  diff[v + 1][1] = currentLastdiff + diff[v + 1][1];
+                                  ignoreCleanUp = true;
+                                } else if (null !== diff[v][1].match(/<mdspan (.*)">$/)) {
+                                  var nextMdSpan = diff[v + 2] ? diff[v + 2][1] : '';
+                                  if ('</mdspan>' === nextMdSpan) {
+                                    diff[v][0] = 0;
+                                    diff[v][1] = '';
+                                    diff[v + 2][0] = 0;
+                                    diff[v + 2][1] = '';
+                                    isComment = true;
                                   }
-                                  dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
-                                  var fullTagRegex = 'a' === tagArray[i] ? '<' + tagArray[i] + ' (.*)>(.*)<\/' + tagArray[i] + '>' : '<' + tagArray[i] + '>(.*)<\/' + tagArray[i] + '>';
-                                  var fullTagFinalRegex = new RegExp(fullTagRegex);
-                                  if (null !== diffText.match(fullTagFinalRegex)) {
-                                    break;
-                                  }
-                                } else {
-                                  dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
                                 }
 
-                                var regex = new RegExp(dynamicRegex, 'g');
-                                if (regex.test(diffText)) {
-                                  matchRegex = true;
-                                  break;
+                                if ('core/list' === finalBlockProps.name) {
+                                  var listPrevLastTag = diff[v - 1] ? diff[v - 1][1].slice(-5) : '';
+                                  var listNextDiffTag = diff[v + 1] ? diff[v + 1][1].substring(0, 7) : '';
+                                  if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation && null !== diff[v][1].match(/<li>(.*)<\/li>$/)) {
+                                    ignoreCleanUp = true;
+                                  } else if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation && null !== diff[v][1].match(/<\/li><li>$/)) {
+                                    var prevListLastTag = diff[v - 1] ? diff[v - 1][1].slice(-4) : '';
+                                    var currentListLastTag = diff[v] ? diff[v][1].slice(-4) : '';
+                                    if ('<li>' === prevListLastTag && '<li>' === currentListLastTag && diff[v + 1]) {
+                                      diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(prevListLastTag));
+                                      diff[v][1] = currentListLastTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(currentListLastTag));
+                                      diff[v + 1][1] = prevListLastTag + diff[v + 1][1];
+                                      ignoreCleanUp = true;
+                                    }
+                                  } else if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_DELETE === operation && diff[v + 1] && null !== diff[v + 1][1].match(/^<\/ins><\/li>/)) {
+                                    if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === diff[v + 1][0] && diff[v + 2] && null !== diff[v + 2][1].match(/^<\/ins><\/li>$/)) {
+                                      var nextTagRemainingText = diff[v + 1][1].replace(/^<\/ins><\/li>/, '');
+                                      diff[v + 1][0] = 0;
+                                      diff[v + 1][1] = diff[v + 2][1];
+                                      diff[v + 2][1] = nextTagRemainingText + diff[v + 2][1];
+                                      diff[v + 2][0] = 1;
+                                      ignoreCleanUp = true;
+                                    }
+                                  } else if ('<li><' === listPrevLastTag && '<li><' === diff[v][1].slice(-5) && 'ins id=' === listNextDiffTag) {
+                                    diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(listPrevLastTag));
+                                    diff[v][1] = listPrevLastTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(listPrevLastTag));
+                                    diff[v + 1][1] = listPrevLastTag + diff[v + 1][1];
+                                    ignoreCleanUp = true;
+                                  }
+                                }
+
+                                diffText = diffText.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
+
+                                for (var i = 0; i < tagArray.length; i++) {
+                                  var dynamicRegex = void 0;
+                                  if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === operation) {
+                                    var tagMatchPattern = 'a' === tagArray[i] ? '<\/' + tagArray[i] + '>(.*)<' + tagArray[i] + ' (.*)>$' : '<\/' + tagArray[i] + '>(.*)<' + tagArray[i] + '>$';
+                                    var tagMatchPatternRegex = new RegExp(tagMatchPattern);
+                                    if (null !== diff[v][1].match(tagMatchPatternRegex)) {
+                                      var replaceTagPatter = '<\/?' + tagArray[i] + '[^>]*>';
+                                      var replaceTagRegex = new RegExp(replaceTagPatter, 'g');
+                                      diff[v][1] = diff[v][1].replace(replaceTagRegex, '');
+                                    }
+                                    dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
+                                    var fullTagRegex = 'a' === tagArray[i] ? '<' + tagArray[i] + ' (.*)>(.*)<\/' + tagArray[i] + '>' : '<' + tagArray[i] + '>(.*)<\/' + tagArray[i] + '>';
+                                    var fullTagFinalRegex = new RegExp(fullTagRegex);
+                                    if (null !== diffText.match(fullTagFinalRegex)) {
+                                      break;
+                                    }
+                                  } else {
+                                    dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                                  }
+
+                                  var regex = new RegExp(dynamicRegex, 'g');
+                                  if (regex.test(diffText)) {
+                                    matchRegex = true;
+                                    break;
+                                  }
                                 }
                               }
                             }
                           }
-                        }
-                        if (!matchRegex && !ignoreCleanUp) {
-                          dmp.diff_cleanupSemantic(diff);
-                        }
-                        if (!isComment) {
-                          var html = [];
-                          var updateOldContent = false;
-                          var isFormating = false;
-                          var nextFomatingIndex = 0;
-                          var formatTagName = '';
-                          var isDelete = false;
-                          var deleteUniqueId = '';
-                          for (var x = 0; x < diff.length; x++) {
-                            var op = diff[x][0];
-                            var text = diff[x][1];
-                            var tagFound = false;
-                            if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttrContent) {
-                              text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
-                              if (!isFormating) {
-                                for (var h = 0; h < tagArray.length; h++) {
-                                  var _fullTagRegex = 'a' === tagArray[h] ? '<' + tagArray[h] + ' (.*)>(.*)<\/' + tagArray[h] + '>' : '<' + tagArray[h] + '>(.*)<\/' + tagArray[h] + '>';
-                                  var _fullTagFinalRegex = new RegExp(_fullTagRegex);
-                                  if (null !== text.match(_fullTagFinalRegex)) {
-                                    break;
-                                  }
-                                  var _dynamicRegex = void 0;
-                                  if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === op) {
-                                    _dynamicRegex = "<(" + tagArray[h] + "|\/" + tagArray[h] + ")";
-                                  } else {
-                                    _dynamicRegex = 'a' === tagArray[h] ? "a [^>]*>" : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
-                                  }
+                          if (!matchRegex && !ignoreCleanUp) {
+                            dmp.diff_cleanupSemantic(diff);
+                            console.log('in cleanup');
+                          }
+                          console.log(diff);
+                          if (!isComment) {
+                            var html = [];
+                            var updateOldContent = false;
+                            var isFormating = false;
+                            var nextFormatIndex = 0;
+                            var formatTagName = '';
+                            var isDelete = false;
+                            var deleteUniqueId = '';
+                            for (var x = 0; x < diff.length; x++) {
+                              var op = diff[x][0];
+                              var text = diff[x][1];
+                              var tagFound = false;
+                              if ((patternResult || matchRegex) && __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL !== op && '' !== currentAttrContent) {
+                                text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
+                                if (!isFormating) {
+                                  for (var h = 0; h < tagArray.length; h++) {
+                                    var _fullTagRegex = 'a' === tagArray[h] ? '<' + tagArray[h] + ' (.*)>(.*)<\/' + tagArray[h] + '>' : '<' + tagArray[h] + '>(.*)<\/' + tagArray[h] + '>';
+                                    var _fullTagFinalRegex = new RegExp(_fullTagRegex);
+                                    if (null !== text.match(_fullTagFinalRegex)) {
+                                      break;
+                                    }
+                                    var _dynamicRegex = void 0;
+                                    if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === op) {
+                                      _dynamicRegex = "<(" + tagArray[h] + "|\/" + tagArray[h] + ")";
+                                    } else {
+                                      _dynamicRegex = 'a' === tagArray[h] ? "a [^>]*>" : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
+                                    }
 
-                                  var _regex = new RegExp(_dynamicRegex, "g");
-                                  if (_regex.test(text)) {
-                                    tagFound = true;
-                                    formatTagName = tagArray[h];
-                                    break;
+                                    var _regex = new RegExp(_dynamicRegex, "g");
+                                    if (_regex.test(text)) {
+                                      tagFound = true;
+                                      formatTagName = tagArray[h];
+                                      break;
+                                    }
                                   }
                                 }
                               }
-                            }
 
-                            var uniqueId = Math.floor(Math.random() * 100).toString() + Date.now().toString();
-                            var dateTime = wp.date.gmdate(timeFormat + ' ' + dateFormat);
+                              var uniqueId = Math.floor(Math.random() * 100).toString() + Date.now().toString();
+                              var dateTime = wp.date.gmdate(timeFormat + ' ' + dateFormat);
 
-                            switch (op) {
-                              case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT:
-                                if (!isFormating && tagFound) {
-                                  isFormating = true;
-                                  nextFomatingIndex = x + 2;
-                                  diff[x + 1][0] = 1;
-                                  html[x] = text;
-                                  updateOldContent = true;
-                                } else if (isFormating && nextFomatingIndex === x) {
-                                  isFormating = false;
-                                  nextFomatingIndex = 0;
-                                  html[x] = text;
-                                } else {
-                                  if (null !== text.match(/<li><\/li>$/)) {
+                              switch (op) {
+                                case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT:
+                                  if (!isFormating && tagFound) {
+                                    isFormating = true;
+                                    nextFormatIndex = x + 2;
+                                    diff[x + 1][0] = 1;
                                     html[x] = text;
-                                  } else if (null !== text.match(/<li>(.*)<\/li>$/)) {
-                                    html[x] = '<li><ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text.replace(/<\/?li[^>]*>/g, '') + '</ins></li>';
-                                  } else {
-                                    html[x] = '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text + '</ins>';
-                                  }
-                                  var tempObject = {};
-                                  if (isFormating && '' !== formatTagName) {
-                                    tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Add', 'text': formatName[formatTagName], 'time': dateTime }];
+                                    updateOldContent = true;
+                                  } else if (isFormating && nextFormatIndex === x) {
+                                    isFormating = false;
+                                    nextFormatIndex = 0;
+                                    var formatTagRegex = '</' + formatTagName + '>$';
+                                    var formatTagFinalRegex = new RegExp(formatTagRegex);
+                                    if (text.match(formatTagFinalRegex)) {
+                                      html[x] = text;
+                                    } else {
+                                      html[x] = '</' + formatTagName + '>';
+                                      var afterFormatTagTxt = text.replace('</' + formatTagName + '>', '');
+                                      if ('' !== afterFormatTagTxt) {
+                                        html[x] += '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + afterFormatTagTxt + '</ins>';
+                                        var tempObject = {};
+                                        tempObject[uniqueId] = [{
+                                          'name': userName,
+                                          'uid': currentUser,
+                                          'role': currentUserRole,
+                                          'avtar': avtarUrl,
+                                          'action': 'Add',
+                                          'mode': 'Add',
+                                          'text': afterFormatTagTxt.replace(/<[^>]*>/g, ''),
+                                          'time': dateTime
+                                        }];
+                                        if (0 === suggestionHistory.length) {
+                                          suggestionHistory = {};
+                                          suggestionHistory[objClientId] = tempObject;
+                                        } else if (!suggestionHistory[objClientId]) {
+                                          suggestionHistory[objClientId] = tempObject;
+                                        } else {
+                                          Object.assign(suggestionHistory[objClientId], tempObject);
+                                        }
+                                      }
+                                    }
                                     formatTagName = '';
                                   } else {
-                                    tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Add', 'mode': 'Add', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
+                                    if (null !== text.match(/<li><\/li>$/)) {
+                                      html[x] = text;
+                                    } else if (null !== text.match(/<li>(.*)<\/li>$/)) {
+                                      html[x] = '<li><ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text.replace(/<\/?li[^>]*>/g, '') + '</ins></li>';
+                                    } else {
+                                      html[x] = '<ins id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #008000;">' + text + '</ins>';
+                                    }
+                                    var _tempObject = {};
+                                    if (isFormating && '' !== formatTagName) {
+                                      _tempObject[uniqueId] = [{
+                                        'name': userName,
+                                        'uid': currentUser,
+                                        'role': currentUserRole,
+                                        'avtar': avtarUrl,
+                                        'action': 'Format',
+                                        'mode': 'Add',
+                                        'text': formatName[formatTagName],
+                                        'time': dateTime
+                                      }];
+                                    } else {
+                                      _tempObject[uniqueId] = [{
+                                        'name': userName,
+                                        'uid': currentUser,
+                                        'role': currentUserRole,
+                                        'avtar': avtarUrl,
+                                        'action': 'Add',
+                                        'mode': 'Add',
+                                        'text': text.replace(/<[^>]*>/g, ''),
+                                        'time': dateTime
+                                      }];
+                                    }
+                                    if (0 === suggestionHistory.length) {
+                                      suggestionHistory = {};
+                                      suggestionHistory[objClientId] = _tempObject;
+                                    } else if (!suggestionHistory[objClientId]) {
+                                      suggestionHistory[objClientId] = _tempObject;
+                                    } else {
+                                      Object.assign(suggestionHistory[objClientId], _tempObject);
+                                    }
                                   }
-                                  if (0 === suggestionHistory.length) {
-                                    suggestionHistory = {};
-                                    suggestionHistory[objClientId] = tempObject;
-                                  } else if (!suggestionHistory[objClientId]) {
-                                    suggestionHistory[objClientId] = tempObject;
+                                  break;
+                                case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_DELETE:
+                                  if (!isFormating && tagFound) {
+                                    isFormating = true;
+                                    html[x] = text;
+                                    diff[x + 1][0] = -1;
+                                    nextFormatIndex = x + 2;
+                                  } else if (isFormating && nextFormatIndex === x) {
+                                    isFormating = false;
+                                    html[x] = text;
+                                    nextFormatIndex = 0;
                                   } else {
-                                    Object.assign(suggestionHistory[objClientId], tempObject);
+                                    html[x] = '<del id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #ff0000;">' + text + '</del>';
+                                    isDelete = true;
+                                    deleteUniqueId = uniqueId;
+                                    var _tempObject2 = {};
+                                    if (isFormating && '' !== formatTagName) {
+                                      _tempObject2[uniqueId] = [{
+                                        'name': userName,
+                                        'uid': currentUser,
+                                        'role': currentUserRole,
+                                        'avtar': avtarUrl,
+                                        'action': 'Format',
+                                        'mode': 'Delete',
+                                        'text': formatName[formatTagName],
+                                        'time': dateTime
+                                      }];
+                                      formatTagName = '';
+                                    } else {
+                                      _tempObject2[uniqueId] = [{
+                                        'name': userName,
+                                        'uid': currentUser,
+                                        'role': currentUserRole,
+                                        'avtar': avtarUrl,
+                                        'action': 'Delete',
+                                        'mode': 'Delete',
+                                        'text': text.replace(/<[^>]*>/g, ''),
+                                        'time': dateTime
+                                      }];
+                                    }
+                                    if (0 === suggestionHistory.length) {
+                                      suggestionHistory = {};
+                                      suggestionHistory[objClientId] = _tempObject2;
+                                    } else if (!suggestionHistory[objClientId]) {
+                                      suggestionHistory[objClientId] = _tempObject2;
+                                    } else {
+                                      Object.assign(suggestionHistory[objClientId], _tempObject2);
+                                    }
                                   }
-                                }
-                                break;
-                              case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_DELETE:
-                                if (!isFormating && tagFound) {
-                                  isFormating = true;
+                                  updateOldContent = true;
+                                  break;
+                                case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL:
                                   html[x] = text;
-                                  diff[x + 1][0] = -1;
-                                  nextFomatingIndex = x + 2;
-                                } else if (isFormating && nextFomatingIndex === x) {
-                                  isFormating = false;
-                                  html[x] = text;
-                                  nextFomatingIndex = 0;
-                                } else {
-                                  html[x] = '<del id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #ff0000;">' + text + '</del>';
-                                  isDelete = true;
-                                  deleteUniqueId = uniqueId;
-                                  var _tempObject = {};
-                                  if (isFormating && '' !== formatTagName) {
-                                    _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Format', 'mode': 'Delete', 'text': formatName[formatTagName], 'time': dateTime }];
-                                    formatTagName = '';
-                                  } else {
-                                    _tempObject[uniqueId] = [{ 'name': userName, 'uid': currentUser, 'role': currentUserRole, 'avtar': avtarUrl, 'action': 'Delete', 'mode': 'Delete', 'text': text.replace(/<[^>]*>/g, ''), 'time': dateTime }];
-                                  }
-                                  if (0 === suggestionHistory.length) {
-                                    suggestionHistory = {};
-                                    suggestionHistory[objClientId] = _tempObject;
-                                  } else if (!suggestionHistory[objClientId]) {
-                                    suggestionHistory[objClientId] = _tempObject;
-                                  } else {
-                                    Object.assign(suggestionHistory[objClientId], _tempObject);
-                                  }
-                                }
-                                updateOldContent = true;
-                                break;
-                              case __WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_EQUAL:
-                                html[x] = text;
-                                break;
-                            }
-                          }
-                          var finalDiff = html.join('');
-                          if (isDelete && '' !== deleteUniqueId && '' !== finalDiff) {
-                            var tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = finalDiff;
-                            var nextNodeId = jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).next('del[data-uid="' + currentUser + '"]').attr('id');
-                            var currentChildNodeIndex = 0;
-                            var nextChildNodeIndex = 0;
-                            if (undefined !== nextNodeId && 0 < tempDiv.childNodes.length) {
-                              for (var _i = 0; _i < tempDiv.childNodes.length; _i++) {
-                                if (undefined !== tempDiv.childNodes[_i].id && deleteUniqueId === tempDiv.childNodes[_i].id) {
-                                  currentChildNodeIndex = _i;
-                                } else if (undefined !== tempDiv.childNodes[_i].id && nextNodeId === tempDiv.childNodes[_i].id) {
-                                  nextChildNodeIndex = _i;
-                                }
+                                  break;
                               }
                             }
-                            if (currentChildNodeIndex + 1 === nextChildNodeIndex) {
-                              var currentElementHtml = jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).html();
-                              var nextElementHtml = jQuery('del#' + nextNodeId + '[data-uid="' + currentUser + '"]', tempDiv).html();
-                              jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).html(currentElementHtml + nextElementHtml);
-                              jQuery('del#' + nextNodeId + '[data-uid="' + currentUser + '"]', tempDiv).remove();
-                              delete suggestionHistory[objClientId][nextNodeId];
-                              suggestionHistory[objClientId][deleteUniqueId][0]['text'] = (currentElementHtml + nextElementHtml).replace(/<[^>]*>/g, '');
-                              finalDiff = tempDiv.innerHTML;
+                            var finalDiff = html.join('');
+                            if (isDelete && '' !== deleteUniqueId && '' !== finalDiff) {
+                              var tempDiv = document.createElement('div');
+                              tempDiv.innerHTML = finalDiff;
+                              var nextNodeId = jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).next('del[data-uid="' + currentUser + '"]').attr('id');
+                              var currentChildNodeIndex = 0;
+                              var nextChildNodeIndex = 0;
+                              var parentNode = jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv)[0].parentNode;
+                              if (undefined !== nextNodeId && 0 < parentNode.childNodes.length) {
+                                for (var _i = 0; _i < parentNode.childNodes.length; _i++) {
+                                  if (undefined !== parentNode.childNodes[_i].id && deleteUniqueId === parentNode.childNodes[_i].id) {
+                                    currentChildNodeIndex = _i;
+                                  } else if (undefined !== parentNode.childNodes[_i].id && nextNodeId === parentNode.childNodes[_i].id) {
+                                    nextChildNodeIndex = _i;
+                                  }
+                                }
+                              }
+                              if (currentChildNodeIndex + 1 === nextChildNodeIndex) {
+                                var currentElementHtml = jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).html();
+                                var nextElementHtml = jQuery('del#' + nextNodeId + '[data-uid="' + currentUser + '"]', tempDiv).html();
+                                jQuery('del#' + deleteUniqueId + '[data-uid="' + currentUser + '"]', tempDiv).html(currentElementHtml + nextElementHtml);
+                                jQuery('del#' + nextNodeId + '[data-uid="' + currentUser + '"]', tempDiv).remove();
+                                delete suggestionHistory[objClientId][nextNodeId];
+                                suggestionHistory[objClientId][deleteUniqueId][0]['text'] = (currentElementHtml + nextElementHtml).replace(/<[^>]*>/g, '');
+                                finalDiff = tempDiv.innerHTML;
+                              }
                             }
-                          }
-                          if (updateOldContent) {
-                            beforeChangeContent[clientId] = finalDiff;
-                          }
-                          currentNewContent = finalDiff;
-
-                          if (suggestionHistory[objClientId]) {
-                            var suggestionChildKey = Object.keys(suggestionHistory[objClientId]);
-
-                            var clientIdNode = document.getElementById(objClientId);
-                            if (!clientIdNode) {
-                              clientIdNode = document.createElement('div');
-                              clientIdNode.setAttribute('id', objClientId);
-                            } else {
-                              clientIdNode.innerHTML = '';
+                            if (updateOldContent) {
+                              beforeChangeContent[clientId] = finalDiff;
                             }
+                            currentNewContent = finalDiff;
 
-                            for (var _i2 = 0; _i2 < suggestionChildKey.length; _i2++) {
-                              var findItem = 'id="' + suggestionChildKey[_i2] + '"';
+                            if (suggestionHistory[objClientId]) {
+                              var suggestionChildKey = Object.keys(suggestionHistory[objClientId]);
 
-                              if (-1 === finalDiff.indexOf(findItem)) {
-                                delete suggestionHistory[objClientId][suggestionChildKey[_i2]];
+                              var clientIdNode = document.getElementById(objClientId);
+                              if (!clientIdNode) {
+                                clientIdNode = document.createElement('div');
+                                clientIdNode.setAttribute('id', objClientId);
                               } else {
-                                var newNode = document.createElement('div');
-                                newNode.setAttribute('id', 'sg' + suggestionChildKey[_i2]);
-                                newNode.setAttribute('data-sid', suggestionChildKey[_i2]);
-                                newNode.setAttribute('class', 'cls-board-outer'); // need to change class
-                                clientIdNode.appendChild(newNode);
+                                clientIdNode.innerHTML = '';
+                              }
 
-                                var referenceNode = document.getElementById('md-suggestion-comments');
-                                if (null === referenceNode) {
-                                  this.handleLoad();
-                                  referenceNode = document.getElementById('md-suggestion-comments');
+                              for (var _i2 = 0; _i2 < suggestionChildKey.length; _i2++) {
+                                var findItem = 'id="' + suggestionChildKey[_i2] + '"';
+
+                                if (-1 === finalDiff.indexOf(findItem)) {
+                                  delete suggestionHistory[objClientId][suggestionChildKey[_i2]];
+                                } else {
+                                  var newNode = document.createElement('div');
+                                  newNode.setAttribute('id', 'sg' + suggestionChildKey[_i2]);
+                                  newNode.setAttribute('data-sid', suggestionChildKey[_i2]);
+                                  newNode.setAttribute('class', 'cls-board-outer'); // need to change class
+                                  clientIdNode.appendChild(newNode);
+
+                                  var referenceNode = document.getElementById('md-suggestion-comments');
+                                  if (null === referenceNode) {
+                                    this.handleLoad();
+                                    referenceNode = document.getElementById('md-suggestion-comments');
+                                  }
+                                  referenceNode.appendChild(clientIdNode);
+
+                                  ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId,
+                                    suggestionID: suggestionChildKey[_i2],
+                                    suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i2]] }), document.getElementById('sg' + suggestionChildKey[_i2]));
                                 }
-                                referenceNode.appendChild(clientIdNode);
-
-                                ReactDOM.render(wp.element.createElement(__WEBPACK_IMPORTED_MODULE_0__suggestion_board__["a" /* default */], { oldClientId: objClientId, clientId: clientId, suggestionID: suggestionChildKey[_i2], suggestedOnText: suggestionHistory[objClientId][suggestionChildKey[_i2]] }), document.getElementById('sg' + suggestionChildKey[_i2]));
                               }
                             }
+                            if ('' !== finalDiff) {
+                              'core/list' === finalBlockProps.name ? setAttributes({ values: finalDiff }) : setAttributes({ content: finalDiff });
+                              wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
+                            }
+                          } else {
+                            beforeChangeContent[clientId] = currentAttrContent;
                           }
-                          if ('' !== finalDiff) {
-                            'core/list' === finalBlockProps.name ? setAttributes({ values: finalDiff }) : setAttributes({ content: finalDiff });
-                            wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
-                          }
-                        } else {
-                          beforeChangeContent[clientId] = currentAttrContent;
                         }
                       }
                     }
@@ -2193,8 +2293,9 @@ var SuggestionComment = function (_React$Component) {
           suggestionID = _props.suggestionID;
 
       var blockAttributes = wp.data.select('core/block-editor').getBlockAttributes(clientId);
-      var oldClientId = blockAttributes.oldClientId,
-          content = blockAttributes.content;
+      var oldClientId = blockAttributes.oldClientId;
+
+      var content = undefined !== blockAttributes.content ? blockAttributes.content : blockAttributes.values;
 
       if ('' !== oldClientId && '' !== content) {
         var suggestionHistory = wp.data.select('core/editor').getEditedPostAttribute('meta')['sb_suggestion_history'];
@@ -2220,13 +2321,24 @@ var SuggestionComment = function (_React$Component) {
                   //tempDiv.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
                   childElements[i].parentNode.replaceChild(document.createTextNode(childElements[i].innerText), childElements[i]);
                 }
+
                 delete suggestionHistory[oldClientId][suggestionID];
                 var finalContent = tempDiv.innerHTML;
-                wp.data.dispatch('core/editor').updateBlock(clientId, {
-                  attributes: {
-                    content: finalContent
-                  }
-                });
+
+                if (undefined !== blockAttributes.content) {
+                  wp.data.dispatch('core/editor').updateBlock(clientId, {
+                    attributes: {
+                      content: finalContent
+                    }
+                  });
+                } else {
+                  wp.data.dispatch('core/editor').updateBlock(clientId, {
+                    attributes: {
+                      values: finalContent
+                    }
+                  });
+                }
+
                 document.getElementById('sg' + suggestionID).remove();
                 wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
                 break;
@@ -2244,9 +2356,9 @@ var SuggestionComment = function (_React$Component) {
           suggestionID = _props2.suggestionID;
 
       var blockAttributes = wp.data.select('core/block-editor').getBlockAttributes(clientId);
-      var oldClientId = blockAttributes.oldClientId,
-          content = blockAttributes.content;
+      var oldClientId = blockAttributes.oldClientId;
 
+      var content = undefined !== blockAttributes.content ? blockAttributes.content : blockAttributes.values;
       if ('' !== oldClientId && '' !== content) {
         var suggestionHistory = wp.data.select('core/editor').getEditedPostAttribute('meta')['sb_suggestion_history'];
         if (0 < suggestionHistory.length) {
@@ -2272,11 +2384,21 @@ var SuggestionComment = function (_React$Component) {
                 }
                 delete suggestionHistory[oldClientId][suggestionID];
                 var finalContent = tempDiv.innerHTML;
-                wp.data.dispatch('core/editor').updateBlock(clientId, {
-                  attributes: {
-                    content: finalContent
-                  }
-                });
+
+                if (undefined !== blockAttributes.content) {
+                  wp.data.dispatch('core/editor').updateBlock(clientId, {
+                    attributes: {
+                      content: finalContent
+                    }
+                  });
+                } else {
+                  wp.data.dispatch('core/editor').updateBlock(clientId, {
+                    attributes: {
+                      values: finalContent
+                    }
+                  });
+                }
+
                 document.getElementById('sg' + suggestionID).remove();
                 wp.data.dispatch('core/editor').editPost({ meta: { sb_suggestion_history: JSON.stringify(suggestionHistory) } });
                 break;
