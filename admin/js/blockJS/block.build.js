@@ -1733,8 +1733,46 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                   } else if (1 === operation && '</ins>' === diff[v][1].slice(-6) && null !== diff[v][1].match(/<\/li><li>/) && diff[v - 1] && '</ins>' === diff[v - 1][1].slice(-6) && diff[v + 1] && '</li>' === diff[v + 1][1]) {
                                     var tempAddition = diff[v][1];
                                     diff[v][1] = diff[v][1].substring(0, diff[v][1].indexOf('</li>'));
-                                    diff[v + 1][1] = tempAddition.substring(diff[v][1].length, tempAddition.length);
+                                    diff[v + 1][1] = tempAddition.substring(diff[v][1].length, tempAddition.length) + diff[v + 1][1];
                                     ignoreCleanUp = true;
+                                  } else if (1 === operation && null !== diff[v][1].match(/^<\/ins><\/li>/) && diff[v + 1] && null !== diff[v + 1][1].match(/^<\/ins><\/li>/) && diff[v - 1]) {
+                                    diff[v - 1][1] += diff[v][1].substring(0, 11);
+                                    diff[v][1] = diff[v][1].substring(11) + diff[v + 1][1].substring(0, 11);
+                                    diff[v + 1][1] = diff[v + 1][1].substring(11);
+                                    ignoreCleanUp = true;
+                                  } else if (-1 === operation && diff[v + 1] && '</li>' === diff[v + 1][1].slice(-5) && 3 === diff.length) {
+                                    //diff[v][1] = diff[v][1].replace(/<\/?li[^>]*>/g, '');
+                                    if (null !== diff[v][1].match(/<\/li><li>/)) {
+                                      var delArr = diff[v][1].split('</li><li>');
+                                      var insertIndex = 1;
+                                      for (var d = 0; d < delArr.length; d++) {
+                                        if ('' !== delArr[d]) {
+                                          if (0 === d) {
+                                            diff[v][1] = delArr[d];
+                                            diff.splice(v + insertIndex, 0, [0, '</li><li>']);
+                                            insertIndex += 1;
+                                          } else {
+                                            diff.splice(v + insertIndex, 0, [-1, delArr[d]], [0, '</li><li>']);
+                                            insertIndex += 2;
+                                          }
+                                        }
+                                      }
+                                      ignoreCleanUp = true;
+                                      break;
+                                    }
+                                  } else if (-1 === operation && null !== diff[v][1].match(/^<li>(.*)<\/li>$/) && 1 < (diff[v][1].match(/<li>/g) || []).length && undefined === diff[v + 1]) {
+                                    var _delArr = diff[v][1].split('</li><li>');
+                                    for (var _d = 0; _d < _delArr.length; _d++) {
+                                      if ('' !== _delArr[_d]) {
+                                        if (0 === _d) {
+                                          diff[v][1] = '<li>' + _delArr[_d].replace(/<\/?li[^>]*>/g, '') + '</li>';
+                                        } else {
+                                          diff.push([-1, '<li>' + _delArr[_d].replace(/<\/?li[^>]*>/g, '') + '</li>']);
+                                        }
+                                      }
+                                    }
+                                    ignoreCleanUp = true;
+                                    break;
                                   }
                                 }
 
@@ -1920,7 +1958,11 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                     nextFormatIndex = 0;
                                   } else {
                                     if (null === text.match(/^<\/li><li>$/)) {
-                                      html[x] = '<del id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #ff0000;">' + text + '</del>';
+                                      if (null !== text.match(/^<li>(.*)<\/li>$/)) {
+                                        html[x] = '<li><del id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #ff0000;">' + text.replace(/<\/?li[^>]*>/g, '') + '</del></li>';
+                                      } else {
+                                        html[x] = '<del id="' + uniqueId + '" data-uid="' + currentUser + '" style="color: #ff0000;">' + text + '</del>';
+                                      }
                                       isDelete = true;
                                       deleteUniqueId = uniqueId;
                                       var _tempObject2 = {};
