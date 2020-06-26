@@ -1088,7 +1088,7 @@ var Comment = function (_React$Component) {
 
                 //if (null === lastVal || undefined === onChanged) {
                 /*jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
-                  let removedComments = jQuery('body').attr('remove-comment');
+                 let removedComments = jQuery('body').attr('remove-comment');
                 removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
                 jQuery('body').attr('remove-comment', removedComments);
                 jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');*/
@@ -1548,8 +1548,8 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                 }
                 if (undefined !== finalBlockProps) {
                   if ('core/paragraph' === finalBlockProps.name || 'core/heading' === finalBlockProps.name || 'core/list' === finalBlockProps.name) {
-                    var oldAttrContent = 'core/list' === finalBlockProps.name ? finalBlockProps.attributes.values : finalBlockProps.attributes.content;
-                    var currentAttrContent = 'core/list' === finalBlockProps.name ? select('core/block-editor').getBlockAttributes(clientId).values : select('core/block-editor').getBlockAttributes(clientId).content;
+                    var oldAttrContent = 'core/list' === finalBlockProps.name ? finalBlockProps.attributes.values.replace(/&nbsp;/g, ' ') : finalBlockProps.attributes.content.replace(/&nbsp;/g, ' ');
+                    var currentAttrContent = 'core/list' === finalBlockProps.name ? select('core/block-editor').getBlockAttributes(clientId).values.replace(/&nbsp;/g, ' ') : select('core/block-editor').getBlockAttributes(clientId).content.replace(/&nbsp;/g, ' ');
                     if ('' === currentAttrContent || currentNewContent !== currentAttrContent) {
                       displayInitialSuggestion = false;
                       if (0 === Object.keys(beforeChangeContent).length || undefined === beforeChangeContent[clientId]) {
@@ -1724,7 +1724,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                       diff[v + 2][0] = 1;
                                       ignoreCleanUp = true;
                                     }
-                                  } else if ('<li><' === listPrevLastTag && '<li><' === diff[v][1].slice(-5) && 'ins id=' === listNextDiffTag) {
+                                  } else if ('<li><' === listPrevLastTag && '<li><' === diff[v][1].slice(-5) && ('ins id=' === listNextDiffTag || 'ins id=' === diff[v][1].substring(0, 7))) {
                                     diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(listPrevLastTag));
                                     diff[v][1] = listPrevLastTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(listPrevLastTag));
                                     diff[v + 1][1] = listPrevLastTag + diff[v + 1][1];
@@ -1741,6 +1741,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                     diff[v + 1][1] = diff[v][1].slice(-1) + diff[v + 1][1];
                                     diff[v][1] = diff[v][1].slice(-1) + diff[v][1].substring(0, diff[v][1].length - 1);
                                     ignoreCleanUp = true;
+                                    //if ( null !== diff[v][1].match(/<\/li><li>/) && )
                                   } else if (1 === operation && '</ins>' === diff[v][1].slice(-6) && null !== diff[v][1].match(/<\/li><li>/) && diff[v - 1] && '</ins>' === diff[v - 1][1].slice(-6) && diff[v + 1] && '</li>' === diff[v + 1][1]) {
                                     var tempAddition = diff[v][1];
                                     diff[v][1] = diff[v][1].substring(0, diff[v][1].indexOf('</li>'));
@@ -1784,6 +1785,19 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                     }
                                     ignoreCleanUp = true;
                                     break;
+                                  } else if (1 === operation && null !== diff[v][1].match(/^\/li><li><$/) && diff[v - 1] && null !== diff[v - 1][1].match(/<\/li><li><$/) && diff[v + 1]) {
+                                    var diffPrevListTag = diff[v - 1][1].slice(-5);
+                                    diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(diffPrevListTag));
+                                    diff[v][1] = diffPrevListTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(diffPrevListTag));
+                                    diff[v + 1][1] = diffPrevListTag + diff[v + 1][1];
+                                    ignoreCleanUp = true;
+                                  } else if (1 === operation && diff[v][1].match(/<li><(strong|em)>[\w|\W]{0,1}$/) && diff[v - 1] && diff[v - 1][1].match(/<li><(strong|em)>[\w|\W]{0,1}$/) && diff[v + 1]) {
+                                    var diffPrevFormat = diff[v - 1][1].match(/<li><(strong|em)>[\w|\W]{0,1}$/)[0];
+                                    var diffCurrFormat = diff[v][1].match(/<li><(strong|em)>[\w|\W]{0,1}$/)[0];
+                                    diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(diffPrevFormat));
+                                    diff[v][1] = diffPrevFormat + diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrFormat));
+                                    diff[v + 1][1] = diffCurrFormat + diff[v + 1][1];
+                                    ignoreCleanUp = true;
                                   }
                                 }
 
@@ -1828,6 +1842,30 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                 diff[2][1] = diff[3][1];
                                 diff[3][1] = remainingText + diff[3][1];
                                 diff[3][0] = 1;
+                              } else if (-1 === diff[1][0] && 1 === diff[2][0] && '<li>' === diff[0][1].slice(-4) && diff[3][1].match(/<\/li>/)) {
+                                var lastLiTag = diff[0][1].slice(-4);
+                                var lastElementIndex = diff[3][1].indexOf('</li>') + 5;
+                                var deleteElementIndex = 1;
+                                diff[0][1] = diff[0][1].substring(0, diff[0][1].lastIndexOf(lastLiTag));
+                                diff[2][1] = lastLiTag + diff[2][1].replace(/<\/?li[^>]*>/g, '') + diff[3][1].substring(0, lastElementIndex);
+                                diff[3][1] = diff[3][1].substring(lastElementIndex);
+                                if (null !== diff[deleteElementIndex][1].match(/<\/li><li>/)) {
+                                  var _delArr2 = diff[deleteElementIndex][1].split('</li><li>');
+                                  var _insertIndex = 1;
+                                  for (var _d2 = 0; _d2 < _delArr2.length; _d2++) {
+                                    if ('' !== _delArr2[_d2]) {
+                                      var finalDelTag = '<li>' + _delArr2[_d2] + '</li>';
+                                      if (0 === _d2) {
+                                        diff[deleteElementIndex][1] = finalDelTag;
+                                      } else {
+                                        diff.splice(deleteElementIndex + _insertIndex, 0, [-1, finalDelTag]);
+                                        _insertIndex++;
+                                      }
+                                    }
+                                  }
+                                } else {
+                                  diff[deleteElementIndex][1] = '<li>' + diff[deleteElementIndex][1].replace(/<\/?li[^>]*>/g, '') + '</li>';
+                                }
                               }
                             }
                           }
