@@ -446,9 +446,7 @@ var mdComment = {
                         $('#' + this.latestBoard).remove();
                     }
 
-                    // If the text removed, remove comment from db and its popup.
-                    // new_logic ->
-                    // just hide these popups and only display on CTRLz
+                    // Just hide these popups and only display on CTRLz
                     $('#md-span-comments .cls-board-outer:not(.has_text):not([data-sid])').each(function () {
                         $(this).hide();
                     });
@@ -466,14 +464,6 @@ var mdComment = {
 
                     // Removing dark highlights from other texts.
                     $('mdspan:not([datatext="' + selectedText + '"])').removeAttr('data-rich-text-format-boundary');
-
-                    // Removing dark highlights from other texts.
-                    //$('mdspan:not([datatext="' + selectedText + '"]), del:not([id="' + selectedText + '"]), ins:not([id="' + selectedText + '"])').removeAttr('data-rich-text-format-boundary');
-
-                    // update id if
-                    /*if(undefined === selectedText && 0 !== $('[data-rich-text-format-boundary="true"]').length) {
-                        selectedText = 'sg' + $('[data-rich-text-format-boundary="true"]').attr('id');
-                    }*/
 
                     // Float comments column.
                     if (undefined !== selectedText) {
@@ -621,6 +611,7 @@ var Board = function (_React$Component) {
         _this2.updateComment = _this2.updateComment.bind(_this2);
         _this2.removeComment = _this2.removeComment.bind(_this2);
         _this2.addNewComment = _this2.addNewComment.bind(_this2);
+        _this2.cancelComment = _this2.cancelComment.bind(_this2);
         _this2.enableUpdateBtn = _this2.enableUpdateBtn.bind(_this2);
         var currentPostID = wp.data.select('core/editor').getCurrentPostId();
         var postSelections = [];
@@ -923,18 +914,33 @@ var Board = function (_React$Component) {
             );
         }
     }, {
+        key: 'cancelComment',
+        value: function cancelComment() {
+            var _props4 = this.props,
+                datatext = _props4.datatext,
+                onChanged = _props4.onChanged,
+                lastVal = _props4.lastVal;
+
+            var name = 'multidots/comment';
+            jQuery('#' + datatext).removeClass('focus');
+
+            if (0 === jQuery('#' + datatext + ' .boardTop .commentContainer').length) {
+                onChanged(removeFormat(lastVal, name));
+            }
+        }
+    }, {
         key: 'render',
         value: function render() {
             var _this3 = this;
 
-            var _props4 = this.props,
-                isActive = _props4.isActive,
-                inputValue = _props4.inputValue,
-                onChange = _props4.onChange,
-                value = _props4.value,
-                myval2 = _props4.myval2,
-                selectedText = _props4.selectedText,
-                datatext = _props4.datatext;
+            var _props5 = this.props,
+                isActive = _props5.isActive,
+                inputValue = _props5.inputValue,
+                onChange = _props5.onChange,
+                value = _props5.value,
+                myval2 = _props5.myval2,
+                selectedText = _props5.selectedText,
+                datatext = _props5.datatext;
 
             var buttonText = 1 === this.hasComments && 1 !== this.props.freshBoard ? 'Reply' : 'Comment';
 
@@ -965,6 +971,11 @@ var Board = function (_React$Component) {
                         'button',
                         { onClick: this.addNewComment, className: 'btn btn-success' },
                         buttonText
+                    ),
+                    wp.element.createElement(
+                        'button',
+                        { onClick: this.cancelComment, className: 'btn btn-cancel' },
+                        'Cancel'
                     )
                 )
             );
@@ -1077,7 +1088,7 @@ var Comment = function (_React$Component) {
 
                 //if (null === lastVal || undefined === onChanged) {
                 /*jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
-                 let removedComments = jQuery('body').attr('remove-comment');
+                  let removedComments = jQuery('body').attr('remove-comment');
                 removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
                 jQuery('body').attr('remove-comment', removedComments);
                 jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');*/

@@ -209,6 +209,12 @@ mdspan{
   min-width: 100px;
 }
 
+.cls-board-outer .board .shareCommentContainer .btn.btn-cancel {
+    margin-left: 10px;
+    color: #3584ea;
+    background: #ffffff;
+}
+
 .cls-board-outer .board .shareCommentContainer textarea:focus + button, .cls-board-outer .board .shareCommentContainer.hovered button {
   display: block;
 }

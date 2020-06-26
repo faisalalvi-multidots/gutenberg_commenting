@@ -11,6 +11,7 @@ export default class Board extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.removeComment = this.removeComment.bind(this);
         this.addNewComment = this.addNewComment.bind(this);
+        this.cancelComment = this.cancelComment.bind(this);
         this.enableUpdateBtn = this.enableUpdateBtn.bind(this);
         const currentPostID = wp.data.select('core/editor').getCurrentPostId();
         const postSelections = [];
@@ -294,6 +295,17 @@ export default class Board extends React.Component {
 
     }
 
+    cancelComment() {
+        const {datatext, onChanged, lastVal} = this.props;
+        const name = 'multidots/comment';
+        jQuery('#'+ datatext).removeClass('focus');
+
+        if ( 0 === jQuery('#'+ datatext + ' .boardTop .commentContainer').length ) {
+            onChanged(removeFormat(lastVal, name));
+        }
+
+    }
+
     render() {
         const {isActive, inputValue, onChange, value, myval2, selectedText, datatext} = this.props;
         const buttonText = 1 === this.hasComments && 1 !== this.props.freshBoard ? 'Reply' : 'Comment';
@@ -314,6 +326,7 @@ export default class Board extends React.Component {
                 <div className="shareCommentContainer">
                     <textarea id={"txt" + datatext} placeholder="Write a comment.."></textarea>
                     <button onClick={this.addNewComment} className="btn btn-success">{buttonText}</button>
+                    <button onClick={this.cancelComment} className="btn btn-cancel">Cancel</button>
                 </div>
             </div>
 
