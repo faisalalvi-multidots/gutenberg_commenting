@@ -292,7 +292,7 @@ class Commenting_block_Admin {
 		 */
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/commenting_block-admin.js', array( 'jquery' ), $this->version, false );
-		wp_enqueue_script( 'suggestion-block', plugin_dir_url( __FILE__ ) . 'js/blockJS/block.build.js', array(
+		wp_enqueue_script( 'commenting-block', plugin_dir_url( __FILE__ ) . 'js/blockJS/block.build.js', array(
 			'jquery',
 			'wp-blocks',
 			'wp-i18n',
@@ -312,7 +312,7 @@ class Commenting_block_Admin {
 		$current_user_role  = $wp_roles->roles[ $current_user->roles[0] ][ 'name' ];
 		$date_format        = get_option( 'date_format' );
 		$time_format        = get_option( 'time_format' );
-		wp_localize_script( 'suggestion-block', 'suggestionBlock', array( 'userRole' => $current_user_role, 'dateFormat' => $date_format, 'timeFormat' => $time_format ) );
+		wp_localize_script( 'commenting-block', 'commentingBlock', array( 'userRole' => $current_user_role, 'dateFormat' => $date_format, 'timeFormat' => $time_format ) );
 
 		wp_enqueue_script( 'jquery-ui-draggable' );
 		wp_enqueue_script( 'jquery-ui-droppable' );

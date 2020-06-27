@@ -216,7 +216,7 @@ mdspan{
 }
 
 .cls-board-outer .board .shareCommentContainer textarea:focus + button, .cls-board-outer .board .shareCommentContainer.hovered button {
-  display: block;
+  display: inline-block;
 }
 
 .cls-board-outer .board .commentContainer button {
@@ -497,17 +497,6 @@ mdspan[data-rich-text-format-boundary="true"] {
   left: -30px;
 }
 
-.sb_loading {
-  background: url('/wp-admin/images/spinner.gif') no-repeat;
-}
-
-/*#md-span-comments, #md-suggestion-comments {
-position: absolute;
-top: 250px;
-right: 15px;
-transition: all 0.5s;
-z-index: 99;
-}*/
 #md-comments-suggestions-parent {
   position: absolute;
   top: 167px;
@@ -684,14 +673,14 @@ body.hide-comments #md-span-comments {
   -webkit-animation-timing-function: linear;
   -moz-animation-timing-function: linear;
   animation-timing-function: linear;
-  height: 20px;
-  width: 20px;
-  border: 4px solid red;
+  height: 10px;
+  width: 10px;
+  border: 2px solid #FFF;
   border-right-color: transparent;
   border-radius: 50%;
   position: absolute;
-  left: 120px;
-  bottom: 15px;
+  left: 95px;
+  bottom: 20px;
 }
 
 @-webkit-keyframes rotate-forever {
