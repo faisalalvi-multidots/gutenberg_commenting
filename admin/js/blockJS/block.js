@@ -54,21 +54,6 @@ function fetchComments() {
     var parentNode = document.createElement('div');
     parentNode.setAttribute("id", 'md-comments-suggestions-parent');
 
-    let parentChildDiv = document.createElement('div');
-    parentChildDiv.setAttribute('id', 'md-tabs');
-
-    let tabCommentSpan = document.createElement('span');
-    tabCommentSpan.setAttribute('class', 'comment active');
-    tabCommentSpan.innerText = 'Comments';
-
-    let tabSuggestionSpan = document.createElement('span');
-    tabSuggestionSpan.setAttribute('class', 'suggestion');
-    tabSuggestionSpan.innerText = 'Suggestions';
-
-    parentChildDiv.appendChild(tabCommentSpan);
-    parentChildDiv.appendChild(tabSuggestionSpan);
-    parentNode.appendChild(parentChildDiv);
-
     var referenceNode = document.querySelector('.block-editor-writing-flow');
 
     if (null !== referenceNode) {
@@ -263,7 +248,6 @@ const mdComment = {
             this.onToggle = this.onToggle.bind(this);
             this.getSelectedText = this.getSelectedText.bind(this);
             this.storeSelectionValue = this.storeSelectionValue.bind(this);
-            this.removeSuggestion = this.removeSuggestion.bind(this);
             this.hidethread = this.hidethread.bind(this);
             this.floatComments = this.floatComments.bind(this);
 
@@ -386,11 +370,6 @@ const mdComment = {
 
                 // Float comments column.
                 if(undefined !== selectedText) {
-                    //Active comment tab
-                    if ( ! $('#md-tabs .comment').hasClass('active') ) {
-                      $('#md-tabs').find('span').removeClass('active').end().find('span.comment').addClass('active');
-                      $('#md-comments-suggestions-parent').find('#md-suggestion-comments').hide().siblings('#md-span-comments').show();
-                    }
                     this.floatComments(selectedText);
                 }
 
@@ -433,11 +412,6 @@ const mdComment = {
 
         }
 
-        removeSuggestion() {
-            const {onChange, value} = this.props;
-            onChange(removeFormat(value, name));
-        }
-
         hidethread() {
             $('.cls-board-outer').removeClass('is_active');
 
@@ -475,22 +449,3 @@ const mdComment = {
     }),
 };
 registerFormatType(name, mdComment);
-
-import './component/suggestion-sidebar';
-import withBlockExtendControls from './component/block-extend-controls';
-
-addFilter( 'editor.BlockEdit', 'md/block-extend-controls', withBlockExtendControls );
-addFilter( 'blocks.registerBlockType', 'md/suggestionBlockAttributes', addCustomAttributes );
-
-function addCustomAttributes( settings, name ) {
-
-  if ( 'core/paragraph' === name || 'core/heading' === name || 'core/list' === name ) {
-    if ( settings.attributes ) {
-      settings.attributes.oldClientId = {
-        type: 'string',
-        default: ''
-      };
-    }
-  }
-  return settings;
-}

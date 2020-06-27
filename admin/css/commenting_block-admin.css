@@ -37,17 +37,6 @@ span.markup-red {
   background-color: red !important;
 }
 
-.close-button-suggestion {
-  position: absolute;
-  right: 0px;
-  top: 0px;
-  height: auto !important;
-}
-
-.close-button-suggestion button {
-  background-color: red;
-}
-
 .components-popover__content .popup-over button {
   width: 100%;
   height: 35px;
@@ -58,14 +47,6 @@ span.markup-red {
   border: solid 1px black;
   color: white;
   border-radius: 5px;
-}
-
-.sb-popover-opacity {
-  text-align: right;    /* position: relative; */
-}
-
-.sb-popover-opacity button {
-  display: inline;
 }
 
 div#Div1 {
@@ -122,10 +103,6 @@ mdspan{
 .cls-board-outer.is_active {
 
   /* display:block; */
-}
-
-.cls-board-outer.is_active_suggestion {
-  display: block;
 }
 
 .cls-board-outer .board .commentContainer {
@@ -216,7 +193,7 @@ mdspan{
 }
 
 .cls-board-outer .board .shareCommentContainer textarea:focus + button, .cls-board-outer .board .shareCommentContainer.hovered button {
-  display: block;
+  display: inline-block;
 }
 
 .cls-board-outer .board .commentContainer button {
@@ -497,18 +474,7 @@ mdspan[data-rich-text-format-boundary="true"] {
   left: -30px;
 }
 
-.sb_loading {
-  background: url('/wp-admin/images/spinner.gif') no-repeat;
-}
-
-/*#md-span-comments, #md-suggestion-comments {
-position: absolute;
-top: 250px;
-right: 15px;
-transition: all 0.5s;
-z-index: 99;
-}*/
-#md-comments-suggestions-parent {
+#md-span-comments {
   position: absolute;
   top: 167px;
   right: 15px;
@@ -585,11 +551,6 @@ body:not(.mobile) .character-map-popover .components-popover__content:not(.is-mo
   min-width: 550px;
 }
 
-.divsuggestion-text {
-  width: 100%;
-  line-height: 1.2;
-}
-
 button.btn-comment.btn-accept:hover {
   box-shadow: none;
   background-color: rgba(0, 0, 0, 0.06);
@@ -638,10 +599,6 @@ button.btn-comment.btn-reject {
   line-height: 1;
 }
 
-.buttons-opner-suggestion svg {
-  fill: rgb(26, 115, 232);
-}
-
 .cls-board-outer .board .commentContainer:last-child {
   margin-bottom: 0;
 }
@@ -684,14 +641,14 @@ body.hide-comments #md-span-comments {
   -webkit-animation-timing-function: linear;
   -moz-animation-timing-function: linear;
   animation-timing-function: linear;
-  height: 20px;
-  width: 20px;
-  border: 4px solid red;
+  height: 10px;
+  width: 10px;
+  border: 2px solid #FFF;
   border-right-color: transparent;
   border-radius: 50%;
   position: absolute;
-  left: 120px;
-  bottom: 15px;
+  left: 95px;
+  bottom: 20px;
 }
 
 @-webkit-keyframes rotate-forever {
@@ -751,76 +708,5 @@ body.hide-comments #md-span-comments {
 
 }
 
-.commentContainer .suggest-box-action button {
-  background: none !important;
-}
-
-.commentContainer .suggest-box-action button svg {
-  fill: rgb(125, 174, 239);
-}
-
-.commentContainer:hover .suggest-box-action button svg {
-  fill: rgb(26, 115, 232);
-}
-
-.comment-header .suggest-box-action {
-  width: 70px;
-}
-
-.comment-header .suggest-box-action button {
-  margin: 0 !important;
-}
-
-.comment-header .suggest-box-action button:hover {
-  background-color: rgba(80, 80, 80, 0.06) !important;
-}
-
-.suggestion-toggle {
-  padding: 20px 10px;
-}
-
-.suggestion-toggle .components-base-control__field {
-  margin: 0;
-}
-
-#md-tabs {
-  margin-bottom: 15px;
-  display: flex;
-  min-width: 285px;
-}
-
-#md-tabs span {
-  font-size: 12px;
-  width: 50%;
-  text-align: center;
-  padding: 10px 10px;
-  cursor: pointer;
-  background: #fff;
-  border-bottom: 1px solid #1989c1;
-  text-transform: uppercase;
-  font-weight: 500;
-  position: relative;
-  color: #1989c1;
-}
-
-#md-tabs span.active {
-  background: #1989c1;
-  color: #fff;
-}
-
-#md-tabs span.active:after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #1989c1;
-  left: 50%;
-  margin-left: -10px;
-}
-/* Hide format type on suggestion mode enable */
-.suggestion-mode .block-editor-format-toolbar button[aria-label="Link"], .suggestion-mode .block-editor-format-toolbar button[aria-label="Unlink"] { display: none;}
-.suggestion-mode .components-dropdown-menu__menu .components-button:nth-child(3), .suggestion-mode .components-dropdown-menu__menu .components-button:nth-child(5){display:none;}
-.suggestion-mode .components-popover .block-editor-link-control{display:none;}
 .block-editor-writing-flow {float: left;padding-left: 100px;}
 .block-editor-writing-flow::after {content: '';clear: both;display: block;}

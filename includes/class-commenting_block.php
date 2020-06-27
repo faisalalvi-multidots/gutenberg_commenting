@@ -166,7 +166,6 @@ class Commenting_block {
 		$this->loader->add_action( 'wp_ajax_cf_reset_drafts_meta', $plugin_admin,'cf_reset_drafts_meta' );
 		$this->loader->add_action( 'wp_ajax_cf_merge_draft_stacks', $plugin_admin,'cf_merge_draft_stacks' );
 		$this->loader->add_action( 'rest_api_init', $plugin_admin, 'cf_rest_api' );
-		$this->loader->add_action( 'init', $plugin_admin, 'cf_register_post_meta_field' );
 	}
 
 	/**
