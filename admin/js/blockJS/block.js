@@ -479,6 +479,7 @@ registerFormatType(name, mdComment);
 import './component/suggestion-sidebar';
 import withBlockExtendControls from './component/block-extend-controls';
 
+
 addFilter( 'editor.BlockEdit', 'md/block-extend-controls', withBlockExtendControls );
 addFilter( 'blocks.registerBlockType', 'md/suggestionBlockAttributes', addCustomAttributes );
 

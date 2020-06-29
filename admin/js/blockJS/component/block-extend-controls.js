@@ -189,10 +189,10 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                               diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(missDelLastTag));
                               diff[v + 1][1] = missDelLastTag + diff[v + 1][1];
                               ignoreCleanUp = true;
-                            } else if (null !== diff[v][1].match(/<del id=".*">$/) && '' !== diffNextCloseTag) {
+                            } else if (null !== diff[v][1].match(/<del id="[\d]{10,17}" data-uid="[\d]{1,15}" style="color: #008000;">$/) && '' !== diffNextCloseTag) {
                               let diffNextOfNext = diff[v + 2] ? diff[v + 2][1] : '';
                               if (1 === diffNextCloseTag.length && '' !== diffNextOfNext) {
-                                let matchDelTag = diff[v][1].match(/<del id=".*">$/);
+                                let matchDelTag = diff[v][1].match(/<del id="[\d]{10,17}" data-uid="[\d]{1,15}" style="color: #008000;">$/);
                                 diff[v][1] = diff[v][1].substring(0, diff[v][1].lastIndexOf(matchDelTag));
                                 diff[v + 2][1] = matchDelTag + diff[v + 2][1];
                                 ignoreCleanUp = true;
@@ -275,7 +275,24 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                   diff[v + 1][1] = diff[v][1].slice(-1) + diff[v + 1][1];
                                   diff[v][1] = diff[v][1].slice(-1) + diff[v][1].substring(0, diff[v][1].length - 1);
                                   ignoreCleanUp = true;
-                                  //if ( null !== diff[v][1].match(/<\/li><li>/) && )
+                                  if ( null !== diff[v][1].match(/<\/li><li>/) && '<li>' === diff[v - 1][1].slice(-4) && '</li>' === diff[v + 1][1].substring(0,5) ) {
+                                    diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf('<li>'));
+                                    diff[v + 1][1] = diff[v + 1][1].substring(5);
+                                    let delArr = diff[v][1].split('</li><li>');
+                                    let insertIndex = 1;
+                                    for ( let d = 0; d < delArr.length; d++ ) {
+                                      if ( '' !== delArr[d] ) {
+                                        let finalDelTag = '<li>' + delArr[d] + '</li>';
+                                        if ( 0 === d ) {
+                                          diff[v][1] = finalDelTag;
+                                        } else {
+                                          diff.splice(v + insertIndex, 0, [-1, finalDelTag]);
+                                          insertIndex++;
+                                        }
+                                      }
+                                    }
+                                    break;
+                                  }
                                 } else if ( 1 === operation && '</ins>' === diff[v][1].slice(-6) && null !== diff[v][1].match(/<\/li><li>/) && diff[v -1] && '</ins>' === diff[v -1][1].slice(-6) && diff[v + 1] && '</li>' === diff[v + 1][1] ) {
                                   let tempAddition = diff[v][1];
                                   diff[v][1] = diff[v][1].substring(0, diff[v][1].indexOf('</li>'));
@@ -333,6 +350,13 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                   diff[v][1] = diffPrevFormat + diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrFormat));
                                   diff[v + 1][1] = diffCurrFormat + diff[v + 1][1];
                                   ignoreCleanUp = true;
+                                } else if ( 1 === operation && ( null !== diff[v][1].match(/^<\/li><li>/) || null !== diff[v][1].match(/<\/li><li>[\w\W]{0,15}$/) ) && diff[v - 1] && null !== diff[v - 1][1].match(/<\/li><li>/) && diff[v +  1] ) {
+                                  let diffPrevRemainingText = diff[v - 1][1].substring(diff[v - 1][1].lastIndexOf('<li>'));
+                                  let diffCurrRemainingText = diff[v][1].substring(diff[v][1].lastIndexOf('<li>'));
+                                  diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf('<li>'));
+                                  diff[v][1] = diffPrevRemainingText + diff[v][1].substring(0, diff[v][1].lastIndexOf('<li>'));
+                                  diff[v + 1][1] = diffCurrRemainingText + diff[v + 1][1];
+                                  ignoreCleanUp = true;
                                 }
                               }
 
@@ -371,11 +395,18 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                           dmp.diff_cleanupSemantic(diff);
                           console.log('in cleanup');
                           if ('core/list' === finalBlockProps.name && 4 === diff.length) {
-                            if (-1 === diff[1][0] && 1 === diff[2][0] && null !== diff[2][1].match(/^<\/ins><\/li>/) && null !== diff[3][1].match(/^<\/ins><\/li>$/)) {
+                            if (-1 === diff[1][0] && 1 === diff[2][0] && null !== diff[2][1].match(/^<\/ins><\/li>/) && ( null !== diff[3][1].match(/^<\/ins><\/li>$/) || null !== diff[3][1].match(/^<\/ins><\/li>(.*)/) ) ) {
                               let remainingText = diff[2][1].replace(/^<\/ins><\/li>/, '');
                               diff[2][0] = 0;
-                              diff[2][1] = diff[3][1];
-                              diff[3][1] = remainingText + diff[3][1];
+                              if ( null !== diff[3][1].match(/^<\/ins><\/li>$/) ) {
+                                diff[2][1] = diff[3][1];
+                                diff[3][1] = remainingText + diff[3][1];
+                              } else {
+                                let diffNextInsTag = diff[3][1].substring(0, 11);
+                                diff[2][1] = diffNextInsTag;
+                                diff.push([0, diff[3][1].substring(diffNextInsTag.length)]);
+                                diff[3][1] = remainingText + diffNextInsTag;
+                              }
                               diff[3][0] = 1;
                             } else if (-1 === diff[1][0] && 1 === diff[2][0] && '<li>' === diff[0][1].slice(-4) && diff[3][1].match(/<\/li>/) ) {
                               let lastLiTag = diff[0][1].slice(-4);
