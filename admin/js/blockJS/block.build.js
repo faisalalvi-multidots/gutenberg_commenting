@@ -1592,7 +1592,13 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                         var diff = dmp.diff_main(beforeChangeContent[clientId], filterContent);
 
                         if (0 < diff.length) {
-                          var tagArray = ['strong', 'em', 'a', 's', 'code', 'span'];
+
+                          //Apply diff cleanup when got unwanted output from main diff.
+                          if ('core/list' === finalBlockProps.name && 12 < diff.length && null !== diff[3][1].match(/^#ff/) && null !== diff[4][1].match(/^rgb\(/)) {
+                            dmp.diff_cleanupSemantic(diff);
+                          }
+
+                          var tagArray = ['strong', 'em', 'a', 'span', 's', 'code'];
                           var formatName = {
                             'strong': 'bold',
                             'em': 'italic',
@@ -1808,9 +1814,9 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                     diff[v][1] = diffPrevListTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(diffPrevListTag));
                                     diff[v + 1][1] = diffPrevListTag + diff[v + 1][1];
                                     ignoreCleanUp = true;
-                                  } else if (1 === operation && diff[v][1].match(/<li><(strong|em)>[\w|\W]{0,1}$/) && diff[v - 1] && diff[v - 1][1].match(/<li><(strong|em)>[\w|\W]{0,1}$/) && diff[v + 1]) {
-                                    var diffPrevFormat = diff[v - 1][1].match(/<li><(strong|em)>[\w|\W]{0,1}$/)[0];
-                                    var diffCurrFormat = diff[v][1].match(/<li><(strong|em)>[\w|\W]{0,1}$/)[0];
+                                  } else if (1 === operation && null !== diff[v][1].match(/<li><(strong|em|span)>[\w|\W]{0,1}$/) && diff[v - 1] && null !== diff[v - 1][1].match(/<li><(strong|em|span)>[\w|\W]{0,1}$/) && diff[v + 1]) {
+                                    var diffPrevFormat = diff[v - 1][1].match(/<li><(strong|em|span)>[\w|\W]{0,1}$/)[0];
+                                    var diffCurrFormat = diff[v][1].match(/<li><(strong|em|span)>[\w|\W]{0,1}$/)[0];
                                     diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(diffPrevFormat));
                                     diff[v][1] = diffPrevFormat + diff[v][1].substring(0, diff[v][1].lastIndexOf(diffCurrFormat));
                                     diff[v + 1][1] = diffCurrFormat + diff[v + 1][1];
@@ -1822,6 +1828,69 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                     diff[v][1] = diffPrevRemainingText + diff[v][1].substring(0, diff[v][1].lastIndexOf('<li>'));
                                     diff[v + 1][1] = diffCurrRemainingText + diff[v + 1][1];
                                     ignoreCleanUp = true;
+                                  } else if (-1 === operation && null !== diff[v][1].match(/<\/li><li>/) && diff[v - 1] && null !== diff[v - 1][1].match(/<\/li><li>/) && diff[v + 2] && '</ins>' === diff[v + 2][1]) {
+                                    diff[v + 2][0] = 0;
+                                    var _delArr3 = diff[v][1].split('</li><li>');
+                                    var _insertIndex2 = 1;
+                                    for (var _d3 = 0; _d3 < _delArr3.length; _d3++) {
+                                      if ('' !== _delArr3[_d3]) {
+                                        if (0 === _d3) {
+                                          diff[v][1] = _delArr3[_d3];
+                                          diff.splice(v + _insertIndex2, 0, [0, '</li><li>']);
+                                          _insertIndex2 += 1;
+                                        } else {
+                                          if (null !== _delArr3[_d3].match(/^<ins /) && null === _delArr3[_d3].match(/<\/ins>/)) {
+                                            var matchedInstag = _delArr3[_d3].match(/<ins[^>]*>/);
+                                            diff[v + (_insertIndex2 - 1)][1] += matchedInstag;
+                                            _delArr3[_d3] = _delArr3[_d3].replace(/<ins[^>]*>/, '');
+                                          }
+                                          if (_d3 + 1 === _delArr3.length) {
+                                            diff.splice(v + _insertIndex2, 0, [-1, _delArr3[_d3]]);
+                                          } else {
+                                            diff.splice(v + _insertIndex2, 0, [-1, _delArr3[_d3]], [0, '</li><li>']);
+                                            _insertIndex2 += 2;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    ignoreCleanUp = true;
+                                    break;
+                                  } else if (1 === operation && diff[v + 3] && null !== diff[v + 1][1].match(/^<\/li><li><ins/) && null !== diff[v + 2][1].match(/^<\/ins><ins/) && null !== diff[v + 3][1].match(/^<\/ins><\/li><li>/)) {
+                                    var closingInsTag = diff[v + 2][1].substring(0, 6);
+                                    diff[v + 1][1] = diff[v + 1][1] + closingInsTag;
+                                    diff[v + 2][1] = diff[v + 2][1].substring(closingInsTag.length) + closingInsTag;
+                                    diff[v + 3][1] = diff[v + 3][1].substring(closingInsTag.length);
+                                    ignoreCleanUp = true;
+                                  } else if (-1 === operation && 8 === diff.length && null !== diff[v][1].match(/<\/li><li>/) && null !== diff[v + 2][1].match(/^#ff/) && null !== diff[v + 3][1].match(/^rgb\(/)) {
+                                    diff[v + 2][0] = 0;
+                                    diff[v + 3][0] = 0;
+                                    diff[v + 3][1] = '';
+                                    diff[v + 5][0] = 0;
+                                    var _delArr4 = diff[v][1].split('</li><li>');
+                                    var _insertIndex3 = 1;
+                                    for (var _d4 = 0; _d4 < _delArr4.length; _d4++) {
+                                      if ('' !== _delArr4[_d4]) {
+                                        if (0 === _d4) {
+                                          diff[v][1] = _delArr4[_d4];
+                                          diff.splice(v + _insertIndex3, 0, [0, '</li><li>']);
+                                          _insertIndex3 += 1;
+                                        } else {
+                                          if (null !== _delArr4[_d4].match(/^<ins /) && null === _delArr4[_d4].match(/<\/ins>/)) {
+                                            var _matchedInstag = _delArr4[_d4].match(/<ins[^>]*>/);
+                                            diff[v + (_insertIndex3 - 1)][1] += _matchedInstag;
+                                            _delArr4[_d4] = _delArr4[_d4].replace(/<ins[^>]*>/, '');
+                                          }
+                                          if (_d4 + 1 === _delArr4.length) {
+                                            diff.splice(v + _insertIndex3, 0, [-1, _delArr4[_d4]]);
+                                          } else {
+                                            diff.splice(v + _insertIndex3, 0, [-1, _delArr4[_d4]], [0, '</li><li>']);
+                                            _insertIndex3 += 2;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    ignoreCleanUp = true;
+                                    break;
                                   }
                                 }
 
@@ -1881,16 +1950,16 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                 diff[2][1] = lastLiTag + diff[2][1].replace(/<\/?li[^>]*>/g, '') + diff[3][1].substring(0, lastElementIndex);
                                 diff[3][1] = diff[3][1].substring(lastElementIndex);
                                 if (null !== diff[deleteElementIndex][1].match(/<\/li><li>/)) {
-                                  var _delArr3 = diff[deleteElementIndex][1].split('</li><li>');
-                                  var _insertIndex2 = 1;
-                                  for (var _d3 = 0; _d3 < _delArr3.length; _d3++) {
-                                    if ('' !== _delArr3[_d3]) {
-                                      var _finalDelTag = '<li>' + _delArr3[_d3] + '</li>';
-                                      if (0 === _d3) {
+                                  var _delArr5 = diff[deleteElementIndex][1].split('</li><li>');
+                                  var _insertIndex4 = 1;
+                                  for (var _d5 = 0; _d5 < _delArr5.length; _d5++) {
+                                    if ('' !== _delArr5[_d5]) {
+                                      var _finalDelTag = '<li>' + _delArr5[_d5] + '</li>';
+                                      if (0 === _d5) {
                                         diff[deleteElementIndex][1] = _finalDelTag;
                                       } else {
-                                        diff.splice(deleteElementIndex + _insertIndex2, 0, [-1, _finalDelTag]);
-                                        _insertIndex2++;
+                                        diff.splice(deleteElementIndex + _insertIndex4, 0, [-1, _finalDelTag]);
+                                        _insertIndex4++;
                                       }
                                     }
                                   }
@@ -1917,7 +1986,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                 text = text.replace(/<\/?ins[^>]*>/g, "").replace(/<\/?del[^>]*>/g, "");
                                 if (!isFormating) {
                                   for (var h = 0; h < tagArray.length; h++) {
-                                    var _fullTagRegex = 'a' === tagArray[h] ? '<' + tagArray[h] + ' (.*)>(.*)<\/' + tagArray[h] + '>' : '<' + tagArray[h] + '>(.*)<\/' + tagArray[h] + '>';
+                                    var _fullTagRegex = 'a' === tagArray[h] || 'span' === tagArray[h] ? '<' + tagArray[h] + ' (.*)>(.*)<\/' + tagArray[h] + '>' : '<' + tagArray[h] + '>(.*)<\/' + tagArray[h] + '>';
                                     var _fullTagFinalRegex = new RegExp(_fullTagRegex);
                                     if (null !== text.match(_fullTagFinalRegex)) {
                                       break;
