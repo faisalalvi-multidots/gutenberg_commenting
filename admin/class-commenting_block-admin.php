@@ -49,12 +49,8 @@ class Commenting_block_Admin {
 	 * @since    1.0.0
 	 */
 	public function __construct( $plugin_name, $version ) {
-
 		$this->plugin_name = $plugin_name;
 		$this->version     = $version;
-
-		// Disabled this, handling it with jQuery.
-		//add_action( 'post_updated', array( $this, 'cf_post_status_changes' ), 10, 3 );
 	}
 
 	/**
@@ -292,7 +288,7 @@ class Commenting_block_Admin {
 		 */
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/commenting_block-admin.js', array( 'jquery' ), $this->version, false );
-		wp_enqueue_script( 'suggestion-block', plugin_dir_url( __FILE__ ) . 'js/blockJS/block.build.js', array(
+		wp_enqueue_script( 'commenting-block', plugin_dir_url( __FILE__ ) . 'js/blockJS/block.build.js', array(
 			'jquery',
 			'wp-blocks',
 			'wp-i18n',
@@ -308,11 +304,11 @@ class Commenting_block_Admin {
 		), $this->version, true );
 
 		global $wp_roles;
-		$current_user       = wp_get_current_user();
-		$current_user_role  = $wp_roles->roles[ $current_user->roles[0] ][ 'name' ];
-		$date_format        = get_option( 'date_format' );
-		$time_format        = get_option( 'time_format' );
-		wp_localize_script( 'suggestion-block', 'suggestionBlock', array( 'userRole' => $current_user_role, 'dateFormat' => $date_format, 'timeFormat' => $time_format ) );
+		$current_user      = wp_get_current_user();
+		$current_user_role = $wp_roles->roles[ $current_user->roles[0] ]['name'];
+		$date_format       = get_option( 'date_format' );
+		$time_format       = get_option( 'time_format' );
+		wp_localize_script( 'commenting-block', 'suggestionBlock', array( 'userRole' => $current_user_role, 'dateFormat' => $date_format, 'timeFormat' => $time_format ) );
 
 		wp_enqueue_script( 'jquery-ui-draggable' );
 		wp_enqueue_script( 'jquery-ui-droppable' );
@@ -359,8 +355,6 @@ class Commenting_block_Admin {
 		if ( isset( $current_drafts['comments'] ) && 0 !== count( $current_drafts['comments'] ) ) {
 			$current_drafts['comments'][ $metaId ][] = $timestamp;
 		} else {
-			//$current_drafts = array();
-
 			$current_drafts['comments'][ $metaId ][] = $timestamp;
 		}
 		update_post_meta( $current_post_id, 'current_drafts', $current_drafts );
@@ -418,7 +412,9 @@ class Commenting_block_Admin {
 					}
 
 					$timestamp = isset( $v['resolved_timestamp'] ) ? (int) $v['resolved_timestamp'] : '';
-					$dtTime    = date( $time_format . ' ' . $date_format, $timestamp );
+					if ( ! empty( $timestamp ) ) {
+						$dtTime = date( $time_format . ' ' . $date_format, $timestamp );
+					}
 
 					$prepareDataTable[ $timestamp ][ $dataid . '_' . $udata ]['dataid']            = $dataid;
 					$prepareDataTable[ $timestamp ][ $dataid . '_' . $udata ]['commented_on_text'] = $commented_on_text;
@@ -454,7 +450,9 @@ class Commenting_block_Admin {
 						}
 
 						$thread = $c['thread'];
-						$dtTime = date( $time_format . ' ' . $date_format, $timestamp );
+						if ( ! empty( $timestamp ) ) {
+							$dtTime = date( $time_format . ' ' . $date_format, $timestamp );
+						}
 
 						$prepareDataTable[ $timestamp ][ $dataid . '_' . $udata . '_' . $comment_count ]['dataid']            = $dataid;
 						$prepareDataTable[ $timestamp ][ $dataid . '_' . $udata . '_' . $comment_count ]['commented_on_text'] = $commented_on_text;
@@ -510,7 +508,14 @@ class Commenting_block_Admin {
 		}
 		$html .= "</div>";
 
-		echo $html;
+		$allowed_tags = array(
+			'a'    => array( 'id' => array(), 'href' => array(), 'target' => array(), 'style' => array(), 'class' => array(), 'data-id' => array() ),
+			'div'  => array( 'id' => array(), 'class' => array(), 'style' => array() ),
+			'img'  => array( 'src' => array(), 'title' => array(), 'alt' => array() ),
+			'span' => array( 'class' => array(), 'style' => array() ),
+		);
+
+		echo wp_kses( $html, $allowed_tags );
 		wp_die();
 	}
 
@@ -522,8 +527,8 @@ class Commenting_block_Admin {
 		$current_post_id = $_POST['currentPostID'];
 		$metaId          = $_POST['metaId'];
 		$edited_comment  = str_replace( "\\", "", $_POST['editedComment'] );
-		$edited_comment  = json_decode( $edited_comment, true );
-		$old_timestamp   = $edited_comment['timestamp'];
+		$edited_comment = json_decode( $edited_comment, true );
+		$old_timestamp  = $edited_comment['timestamp'];
 
 		$commentListOld = get_post_meta( $current_post_id, $metaId, true );
 		$commentListOld = maybe_unserialize( $commentListOld );
@@ -536,9 +541,9 @@ class Commenting_block_Admin {
 		update_post_meta( $current_post_id, $metaId, $commentListOld );
 
 		// Update Current Drafts.
-		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
-		$current_drafts = maybe_unserialize( $current_drafts );
-		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
+		$current_drafts                        = get_post_meta( $current_post_id, 'current_drafts', true );
+		$current_drafts                        = maybe_unserialize( $current_drafts );
+		$current_drafts                        = empty( $current_drafts ) ? array() : $current_drafts;
 		$current_drafts['edited'][ $metaId ][] = $old_timestamp;
 
 		update_post_meta( $current_post_id, 'current_drafts', $current_drafts );
@@ -556,9 +561,9 @@ class Commenting_block_Admin {
 		$timestamp       = $_POST['timestamp'];
 
 		// Update Current Drafts.
-		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
-		$current_drafts = maybe_unserialize( $current_drafts );
-		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
+		$current_drafts                         = get_post_meta( $current_post_id, 'current_drafts', true );
+		$current_drafts                         = maybe_unserialize( $current_drafts );
+		$current_drafts                         = empty( $current_drafts ) ? array() : $current_drafts;
 		$current_drafts['deleted'][ $metaId ][] = $timestamp;
 
 		update_post_meta( $current_post_id, 'current_drafts', $current_drafts );
@@ -618,9 +623,9 @@ class Commenting_block_Admin {
 		$changed = 0;
 
 		// Move previous drafts to Permanent Draft Stack.
-		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
-		$current_drafts = maybe_unserialize( $current_drafts );
-		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
+		$current_drafts   = get_post_meta( $current_post_id, 'current_drafts', true );
+		$current_drafts   = maybe_unserialize( $current_drafts );
+		$current_drafts   = empty( $current_drafts ) ? array() : $current_drafts;
 		$permanent_drafts = get_post_meta( $current_post_id, 'permanent_drafts', true );
 		$permanent_drafts = maybe_unserialize( $permanent_drafts );
 
@@ -666,8 +671,6 @@ class Commenting_block_Admin {
 		if ( isset( $current_drafts['resolved'] ) && 0 !== count( $current_drafts['resolved'] ) ) {
 			$current_drafts['resolved'][] = $metaId;
 		} else {
-			//$current_drafts = array();
-
 			$current_drafts['resolved'][] = $metaId;
 		}
 		update_post_meta( $current_post_id, 'current_drafts', $current_drafts );
@@ -693,13 +696,13 @@ class Commenting_block_Admin {
 	public function cf_register_post_meta_field() {
 		register_post_meta( '', 'sb_is_suggestion_mode', array(
 			'show_in_rest' => true,
-			'single' => true,
-			'type' => 'boolean',
+			'single'       => true,
+			'type'         => 'boolean',
 		) );
 		register_post_meta( '', 'sb_suggestion_history', array(
 			'show_in_rest' => true,
-			'single' => true,
-			'type' => 'string',
+			'single'       => true,
+			'type'         => 'string',
 		) );
 	}
 
@@ -747,6 +750,7 @@ class Commenting_block_Admin {
 			}
 		}
 
+		$data                    = array();
 		$data['userDetails']     = $userDetails;
 		$data['resolved']        = 'true' === $superCareerData['resolved'] ? 'true' : 'false';
 		$data['commentedOnText'] = $superCareerData['commentedOnText'];
