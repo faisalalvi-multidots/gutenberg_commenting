@@ -144,6 +144,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                         let matchRegex = false;
                         let ignoreCleanUp = false;
                         let isComment = false;
+                        let updateOldContent = false;
 
                         if ('' !== currentAttrContent) {
                           for (let v = 0; v < diff.length; v++) {
@@ -254,6 +255,10 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                     diff[v][1] = currentListLastTag + diff[v][1].substring(0, diff[v][1].lastIndexOf(currentListLastTag));
                                     diff[v + 1][1] = prevListLastTag + diff[v + 1][1];
                                     ignoreCleanUp = true;
+                                  } else if ( null !== diff[v][1].match(/^<\/li><li>$/) && diff[v - 1] && (diff[v - 1][1].match(/<\/li>/g) || []).length !== (diff[v - 1][1].match(/<li>/g) || []).length ) {
+                                    diff[v][0] = 0;
+                                    updateOldContent = true;
+                                    ignoreCleanUp = true;
                                   }
                                 } else if (DiffMatchPatch.DIFF_DELETE === operation && diff[v + 1] && null !== diff[v + 1][1].match(/^<\/ins><\/li>/) ) {
                                   if (DiffMatchPatch.DIFF_INSERT === diff[v + 1][0] && diff[v + 2] && null !== diff[v + 2][1].match(/^<\/ins><\/li>$/) ) {
@@ -299,7 +304,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                     }
                                     break;
                                   }
-                                } else if ( 1 === operation && '</ins>' === diff[v][1].slice(-6) && null !== diff[v][1].match(/<\/li><li>/) && diff[v -1] && '</ins>' === diff[v -1][1].slice(-6) && diff[v + 1] && '</li>' === diff[v + 1][1] ) {
+                                } else if ( 1 === operation && '</ins>' === diff[v][1].slice(-6) && null !== diff[v][1].match(/<\/li><li>/) && diff[v -1] && '</ins>' === diff[v -1][1].slice(-6) && diff[v + 1] && '</li>' === diff[v + 1][1].substring(0,5) ) {
                                   let tempAddition = diff[v][1];
                                   diff[v][1] = diff[v][1].substring(0, diff[v][1].indexOf('</li>'));
                                   diff[v + 1][1] = tempAddition.substring(diff[v][1].length, tempAddition.length) + diff[v + 1][1];
@@ -426,6 +431,51 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                   }
                                   ignoreCleanUp = true;
                                   break;
+                                } else if ( 1 === operation && null !== diff[v][1].match(/^<\/ins><\/li><li><ins/) && diff[v + 1] && null !== diff[v + 1][1].match(/<\/ins><\/li>/) && diff[v - 1] ) {
+                                  diff[v - 1][1] += diff[v][1].substring(0, diff[v][1].indexOf('<li><ins'));
+                                  diff[v][1] = diff[v][1].substring(diff[v][1].indexOf('<li><ins')) + diff[v + 1][1].substring(0, diff[v + 1][1].indexOf('</ins></li>') + 11);
+                                  diff[v + 1][1] = diff[v + 1][1].substring(diff[v + 1][1].indexOf('</ins></li>') + 11);
+                                  ignoreCleanUp = true;
+                                  updateOldContent = true;
+                                } else if ( 1 === operation && null !== diff[v][1].match(/^<\/del><\/ins><\/li>/) && diff[v + 1] && null !== diff[v + 1][1].match(/<\/del><\/ins><\/li>/) && diff[v - 1] ) {
+                                  let matchCloseTag = '</del></ins></li>';
+                                  diff[v - 1][1] += diff[v][1].substring(0, diff[v][1].indexOf(matchCloseTag) + matchCloseTag.length);
+                                  diff[v][1] = diff[v][1].substring(diff[v][1].indexOf(matchCloseTag) + matchCloseTag.length) + diff[v + 1][1].substring(0, diff[v + 1][1].indexOf(matchCloseTag) + matchCloseTag.length);
+                                  diff[v][0] = -1;
+                                  diff[v + 1][1] = diff[v + 1][1].substring(diff[v + 1][1].indexOf(matchCloseTag) + matchCloseTag.length);
+                                  ignoreCleanUp = true;
+                                } else if ( 1 === operation && null !== diff[v][1].match(/^<ins/) && null !== diff[v][1].match(/<\/ins><\/li><li><ins/) && diff[v + 1] && null !== diff[v + 1][1].match(/^<\/li>/) ) {
+                                  let insArr = diff[v][1].split('</li><li>');
+                                  let insertIndex = 1;
+                                  for ( let n = 0; n < insArr.length; n++ ) {
+                                    if ( '' !== insArr[n] ) {
+                                      if ( 0 === n ) {
+                                        diff[v][1] = insArr[n];
+                                        diff.splice( v + insertIndex, 0, [0, '</li><li>']);
+                                        insertIndex += 1;
+                                      } else {
+                                        if ( n + 1 === insArr.length ) {
+                                          diff.splice(v + insertIndex, 0, [1, insArr[n]]);
+                                        } else {
+                                          diff.splice(v + insertIndex, 0, [1, insArr[n]],[0, '</li><li>']);
+                                          insertIndex += 2;
+                                        }
+                                      }
+                                    }
+                                  }
+                                  ignoreCleanUp = true;
+                                  break;
+                                } else if ( 1 === operation && diff[v - 2] && 1 === diff[v - 2][0] && null !== diff[v - 2][1].match(/^<ins/) && null !== diff[v - 1][1].match(/^<\/li><li>/) && diff[v + 1] ) {
+                                  let currentDiffText = null !== diff[v][1].match(/<ins /) ? diff[v][1].substring(0, diff[v][1].indexOf('<ins') ) : diff[v][1];
+                                  let nextMatchText = null === diff[v + 1][1].match(/^<\/li>/) ? diff[v + 1][1].substring(0, diff[v + 1][1].indexOf('</li>')) : diff[v + 1][1];
+                                  if ( currentDiffText === nextMatchText ) {
+                                    diff[v - 1][1] += currentDiffText;
+                                    diff[v][1] = diff[v][1].substring(currentDiffText.length) + nextMatchText;
+                                    diff[v + 1][1] = diff[v + 1][1].substring(nextMatchText.length);
+                                    ignoreCleanUp = true;
+                                  }
+                                } else if ( 1 === operation && diff[v + 2] && 1 === diff[v + 2][0] && null !== diff[v + 2][1].match(/^<ins/) && null !== diff[v + 1][1].match(/^<\/li><li>/) ) {
+                                  ignoreCleanUp = true;
                                 }
                               }
 
@@ -437,8 +487,8 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                   let tagMatchPattern = 'a' === tagArray[i] ? '<\/' + tagArray[i] + '>(.*)<' + tagArray[i] + ' (.*)>$' : '<\/' + tagArray[i] + '>(.*)<' + tagArray[i] + '>$';
                                   let tagMatchPatternRegex = new RegExp(tagMatchPattern);
                                   if (null !== diff[v][1].match(tagMatchPatternRegex)) {
-                                    let replaceTagPatter = '<\/?' + tagArray[i] + '[^>]*>';
-                                    let replaceTagRegex = new RegExp(replaceTagPatter, 'g');
+                                    let replaceTagPattern = '<\/?' + tagArray[i] + '[^>]*>';
+                                    let replaceTagRegex = new RegExp(replaceTagPattern, 'g');
                                     diff[v][1] = diff[v][1].replace(replaceTagRegex, '');
                                   }
                                   dynamicRegex = "<(" + tagArray[i] + "|\/" + tagArray[i] + ")";
@@ -507,7 +557,6 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                         console.log(diff);
                         if (!isComment) {
                           let html = [];
-                          let updateOldContent = false;
                           let isFormating = false;
                           let nextFormatIndex = 0;
                           let formatTagName = '';
@@ -847,11 +896,11 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
           newNode.setAttribute('class', 'cls-board-outer');
           clientIdNode.appendChild(newNode);
           commentNode.appendChild(clientIdNode);
+          ReactDOM.render(
+            <SuggestionBoard oldClientId={oldClientId} clientId={clientId} suggestionID={suggestionChildKey[i]} suggestedOnText={displayHistory[oldClientId][suggestionChildKey[i]]} />,
+            document.getElementById('sg' + suggestionChildKey[i])
+          );
         }
-        ReactDOM.render(
-          <SuggestionBoard oldClientId={oldClientId} clientId={clientId} suggestionID={suggestionChildKey[i]} suggestedOnText={displayHistory[oldClientId][suggestionChildKey[i]]} />,
-          document.getElementById('sg' + suggestionChildKey[i])
-        );
       }
       wp.data.dispatch('core/editor').editPost({meta: {sb_suggestion_history: JSON.stringify(displayHistory) } });
     }
