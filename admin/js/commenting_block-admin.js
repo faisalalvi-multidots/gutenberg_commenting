@@ -107,8 +107,6 @@
                 'post': postContent,
             };
             // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-            let _this = this;
-
             jQuery.post(ajaxurl, data, function () {
             });
         });
@@ -125,17 +123,11 @@
         $('.cid_popup_hover').parents('.wp-block.editor-block-list__block.block-editor-block-list__block').addClass('parent_cid_popup_hover');
     });
 
-    $(document).on('click', '.markup', function (event) {
+    $(document).on('click', '.markup', function () {
         $('.markup').removeClass('my-class');
         $(this).attr('data_name', true);
         $(this).addClass('my-class');
     });
-    /*$(document).on('click', function (event) {
-       if( ! $(this).hasClass('markup') ){
-           $(this).attr('data_name', false);
-           $(this).removeClass('my-class');
-       }
-    });*/
     $(document).mouseup(function (e) {
         var container = $(".edit-popup-option");
         var markup = $(".markup");

@@ -66,7 +66,6 @@ function fetchComments() {
         parentNodeRef.appendChild(commentNode);
 
         let selectedText;
-        let txtselectedText;
         var allThreads = [];
 
         // If no comment tag exist, remove the loader and temp style tag immediately.
@@ -120,8 +119,7 @@ function fetchComments() {
             'action': 'cf_reset_drafts_meta',
             'currentPostID': CurrentPostID,
         };
-        $.post(ajaxurl, data, function (response) {
-        });
+        $.post(ajaxurl, data, function () {});
     }
 }
 
@@ -267,7 +265,6 @@ const mdComment = {
 
             referenceNode.appendChild(newNode);
 
-            const simpleCurrentPostID = wp.data.select('core/editor').getCurrentPostId();
             const {value, onChange} = this.props;
             let {text, start, end} = value;
 
@@ -303,7 +300,6 @@ const mdComment = {
 
             if (undefined !== this.props.value.start && null !== referenceNode) {
                 let selectedText;
-                let txtselectedText;
 
                 $('.cls-board-outer').removeClass('has_text');
 
@@ -418,7 +414,7 @@ const mdComment = {
         }
 
         render() {
-            const {isActive, inputValue, onChange, value} = this.props;
+            const {isActive} = this.props;
 
             return (
                 <Fragment>

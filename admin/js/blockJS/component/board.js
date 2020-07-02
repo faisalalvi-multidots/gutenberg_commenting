@@ -30,7 +30,7 @@ export default class Board extends React.Component {
         this.commentedOnText = this.props.commentedOnText;
 
         if (1 !== this.props.freshBoard) {
-            const allPosts = wp.apiFetch({path: 'cf/cf-get-comments-api/?currentPostID=' + currentPostID + '&elID=' + metaselectedText}).then(fps => {
+            wp.apiFetch({path: 'cf/cf-get-comments-api/?currentPostID=' + currentPostID + '&elID=' + metaselectedText}).then(fps => {
 
                 const {userDetails, resolved, commentedOnText} = fps;
 
@@ -106,7 +106,6 @@ export default class Board extends React.Component {
 
         arr.splice(idx, 1);
         const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-        const {value, onChange} = this.props;
         elID = '_' + elID;
         var data = {
             'action': 'cf_delete_comment',
@@ -115,9 +114,7 @@ export default class Board extends React.Component {
             metaId: elID
         };
         // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-        jQuery.post(ajaxurl, data, function (response) {
-
-        });
+        jQuery.post(ajaxurl, data, function () {});
         this.setState({comments: arr});
     }
 
@@ -127,15 +124,18 @@ export default class Board extends React.Component {
 
         var arr = this.state.comments;
 
+        var userID = '';
+        var userName = '';
+        var userProfile = '';
         try {
-            var userID = wp.data.select("core").getCurrentUser().id;
-            var userName = wp.data.select("core").getCurrentUser().name;
-            var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
+            userID = wp.data.select("core").getCurrentUser().id;
+            userName = wp.data.select("core").getCurrentUser().name;
+            userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
             userProfile = userProfile[Object.keys(userProfile)[1]];
         } catch (e) {
-            var userID = localStorage.getItem("userID");
-            var userName = localStorage.getItem("userName");
-            var userProfile = localStorage.getItem("userURL");
+            userID = localStorage.getItem("userID");
+            userName = localStorage.getItem("userName");
+            userProfile = localStorage.getItem("userURL");
         }
 
         var newArr = {};
@@ -157,8 +157,6 @@ export default class Board extends React.Component {
             'metaId': metaID
         };
         // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-        let _this = this;
-
         jQuery.post(ajaxurl, data, function () {
         });
         this.setState({comments: arr})
@@ -178,15 +176,18 @@ export default class Board extends React.Component {
 
         if ('' !== newText) {
 
+            var userID = '';
+            var userName = '';
+            var userProfile = '';
             try {
-                var userID = wp.data.select("core").getCurrentUser().id;
-                var userName = wp.data.select("core").getCurrentUser().name;
-                var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
+                userID = wp.data.select("core").getCurrentUser().id;
+                userName = wp.data.select("core").getCurrentUser().name;
+                userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
                 userProfile = userProfile[Object.keys(userProfile)[1]];
             } catch (e) {
-                var userID = localStorage.getItem("userID");
-                var userName = localStorage.getItem("userName");
-                var userProfile = localStorage.getItem("userURL");
+                userID = localStorage.getItem("userID");
+                userName = localStorage.getItem("userName");
+                userProfile = localStorage.getItem("userURL");
             }
 
             var arr = this.state.comments;
@@ -243,8 +244,7 @@ export default class Board extends React.Component {
 
     displayComments(text, i) {
 
-        const {isActive, inputValue, myval2, value} = this.props; /*onChange*/
-        const {lastVal, onChanged, selectedText, suserProfile, suserName} = this.props;
+        const {lastVal, onChanged, selectedText} = this.props;
 
         let username, postedTime, postedComment, profileURL, userID, status, cTimestamp, editedDraft; /*value, onChange*/
         Object.keys(text).map(i => {
@@ -307,7 +307,7 @@ export default class Board extends React.Component {
     }
 
     render() {
-        const {isActive, inputValue, onChange, value, myval2, selectedText, datatext} = this.props;
+        const {datatext} = this.props;
         const buttonText = 1 === this.hasComments && 1 !== this.props.freshBoard ? 'Reply' : 'Comment';
 
         return (

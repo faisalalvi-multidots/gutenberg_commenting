@@ -100,11 +100,6 @@ mdspan{
   cursor: pointer;
 }
 
-.cls-board-outer.is_active {
-
-  /* display:block; */
-}
-
 .cls-board-outer .board .commentContainer {
   width: 100%;
   box-sizing: border-box;
@@ -128,20 +123,14 @@ mdspan{
 }
 
 .cls-board-outer .board .commentContainer.added {
-
-  /* background: green; */
   background: #dffff4;
 }
 
 .cls-board-outer .board .commentContainer.edited {
-
-  /* background: yellow; */
   background: #ffffb5;
 }
 
 .cls-board-outer .board .commentContainer.deleted {
-
-  /* background: red; */
   background: #ffa787;
 }
 
@@ -182,8 +171,8 @@ mdspan{
   padding: 5px 15px;
   outline: none;
   cursor: pointer;
-  margin-top: 10px;/*display: none;*/
-  min-width: 100px;
+  margin-top: 10px;
+  min-width: 115px;
 }
 
 .cls-board-outer .board .shareCommentContainer .btn.btn-cancel {
@@ -465,15 +454,11 @@ mdspan[data-rich-text-format-boundary="true"] {
   background-color: #edf2f9;
 }
 
-.cls-board-outer.is_active {
-
-  /* z-index: 1000 */
-}
-
 .cls-board-outer.focus {
   left: -30px;
 }
 
+/* Dont replace */
 #md-span-comments {
   position: absolute;
   top: 167px;
@@ -484,11 +469,6 @@ mdspan[data-rich-text-format-boundary="true"] {
 
 .character-map-popover .components-popover__content {
   max-height: 350px; /* avoid a bug with scrolling on initial load and repositioning */
-}
-
-#md-span-comments.comments-loader {
-
-  /*opacity: 0;*/
 }
 
 #md-span-comments.comments-loader:before {
@@ -647,8 +627,12 @@ body.hide-comments #md-span-comments {
   border-right-color: transparent;
   border-radius: 50%;
   position: absolute;
-  left: 95px;
+  right: 175px;
   bottom: 20px;
+}
+
+.cls-board-outer .board .shareCommentContainer.loading .btn-success {
+    padding-right: 30px;
 }
 
 @-webkit-keyframes rotate-forever {

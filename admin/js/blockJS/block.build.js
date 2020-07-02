@@ -149,7 +149,6 @@ function fetchComments() {
         parentNodeRef.appendChild(commentNode);
 
         var selectedText = void 0;
-        var txtselectedText = void 0;
         var allThreads = [];
 
         // If no comment tag exist, remove the loader and temp style tag immediately.
@@ -200,7 +199,7 @@ function fetchComments() {
             'action': 'cf_reset_drafts_meta',
             'currentPostID': CurrentPostID
         };
-        $.post(ajaxurl, data, function (response) {});
+        $.post(ajaxurl, data, function () {});
     }
 }
 
@@ -353,7 +352,6 @@ var mdComment = {
 
                 referenceNode.appendChild(newNode);
 
-                var simpleCurrentPostID = wp.data.select('core/editor').getCurrentPostId();
                 var _props = this.props,
                     value = _props.value,
                     onChange = _props.onChange;
@@ -391,7 +389,6 @@ var mdComment = {
 
                 if (undefined !== this.props.value.start && null !== referenceNode) {
                     var selectedText = void 0;
-                    var txtselectedText = void 0;
 
                     $('.cls-board-outer').removeClass('has_text');
 
@@ -495,11 +492,7 @@ var mdComment = {
         }, {
             key: 'render',
             value: function render() {
-                var _props3 = this.props,
-                    isActive = _props3.isActive,
-                    inputValue = _props3.inputValue,
-                    onChange = _props3.onChange,
-                    value = _props3.value;
+                var isActive = this.props.isActive;
 
 
                 return wp.element.createElement(
@@ -578,7 +571,7 @@ var Board = function (_React$Component) {
         _this2.commentedOnText = _this2.props.commentedOnText;
 
         if (1 !== _this2.props.freshBoard) {
-            var allPosts = wp.apiFetch({ path: 'cf/cf-get-comments-api/?currentPostID=' + currentPostID + '&elID=' + metaselectedText }).then(function (fps) {
+            wp.apiFetch({ path: 'cf/cf-get-comments-api/?currentPostID=' + currentPostID + '&elID=' + metaselectedText }).then(function (fps) {
                 var userDetails = fps.userDetails,
                     resolved = fps.resolved,
                     commentedOnText = fps.commentedOnText;
@@ -659,10 +652,6 @@ var Board = function (_React$Component) {
 
             arr.splice(idx, 1);
             var CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-            var _props = this.props,
-                value = _props.value,
-                onChange = _props.onChange;
-
             elID = '_' + elID;
             var data = {
                 'action': 'cf_delete_comment',
@@ -671,7 +660,7 @@ var Board = function (_React$Component) {
                 metaId: elID
             };
             // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-            jQuery.post(ajaxurl, data, function (response) {});
+            jQuery.post(ajaxurl, data, function () {});
             this.setState({ comments: arr });
         }
     }, {
@@ -682,15 +671,18 @@ var Board = function (_React$Component) {
 
             var arr = this.state.comments;
 
+            var userID = '';
+            var userName = '';
+            var userProfile = '';
             try {
-                var userID = wp.data.select("core").getCurrentUser().id;
-                var userName = wp.data.select("core").getCurrentUser().name;
-                var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
+                userID = wp.data.select("core").getCurrentUser().id;
+                userName = wp.data.select("core").getCurrentUser().name;
+                userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
                 userProfile = userProfile[Object.keys(userProfile)[1]];
             } catch (e) {
-                var userID = localStorage.getItem("userID");
-                var userName = localStorage.getItem("userName");
-                var userProfile = localStorage.getItem("userURL");
+                userID = localStorage.getItem("userID");
+                userName = localStorage.getItem("userName");
+                userProfile = localStorage.getItem("userURL");
             }
 
             var newArr = {};
@@ -712,8 +704,6 @@ var Board = function (_React$Component) {
                 'metaId': metaID
             };
             // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-            var _this = this;
-
             jQuery.post(ajaxurl, data, function () {});
             this.setState({ comments: arr });
         }
@@ -734,15 +724,18 @@ var Board = function (_React$Component) {
 
             if ('' !== newText) {
 
+                var userID = '';
+                var userName = '';
+                var userProfile = '';
                 try {
-                    var userID = wp.data.select("core").getCurrentUser().id;
-                    var userName = wp.data.select("core").getCurrentUser().name;
-                    var userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
+                    userID = wp.data.select("core").getCurrentUser().id;
+                    userName = wp.data.select("core").getCurrentUser().name;
+                    userProfile = wp.data.select("core").getCurrentUser().avatar_urls;
                     userProfile = userProfile[Object.keys(userProfile)[1]];
                 } catch (e) {
-                    var userID = localStorage.getItem("userID");
-                    var userName = localStorage.getItem("userName");
-                    var userProfile = localStorage.getItem("userURL");
+                    userID = localStorage.getItem("userID");
+                    userName = localStorage.getItem("userName");
+                    userProfile = localStorage.getItem("userURL");
                 }
 
                 var arr = this.state.comments;
@@ -796,18 +789,10 @@ var Board = function (_React$Component) {
     }, {
         key: 'displayComments',
         value: function displayComments(text, i) {
-            var _props2 = this.props,
-                isActive = _props2.isActive,
-                inputValue = _props2.inputValue,
-                myval2 = _props2.myval2,
-                value = _props2.value; /*onChange*/
-
-            var _props3 = this.props,
-                lastVal = _props3.lastVal,
-                onChanged = _props3.onChanged,
-                selectedText = _props3.selectedText,
-                suserProfile = _props3.suserProfile,
-                suserName = _props3.suserName;
+            var _props = this.props,
+                lastVal = _props.lastVal,
+                onChanged = _props.onChanged,
+                selectedText = _props.selectedText;
 
 
             var username = void 0,
@@ -864,10 +849,10 @@ var Board = function (_React$Component) {
     }, {
         key: 'cancelComment',
         value: function cancelComment() {
-            var _props4 = this.props,
-                datatext = _props4.datatext,
-                onChanged = _props4.onChanged,
-                lastVal = _props4.lastVal;
+            var _props2 = this.props,
+                datatext = _props2.datatext,
+                onChanged = _props2.onChanged,
+                lastVal = _props2.lastVal;
 
             var name = 'multidots/comment';
             jQuery('#' + datatext).removeClass('focus');
@@ -881,14 +866,7 @@ var Board = function (_React$Component) {
         value: function render() {
             var _this3 = this;
 
-            var _props5 = this.props,
-                isActive = _props5.isActive,
-                inputValue = _props5.inputValue,
-                onChange = _props5.onChange,
-                value = _props5.value,
-                myval2 = _props5.myval2,
-                selectedText = _props5.selectedText,
-                datatext = _props5.datatext;
+            var datatext = this.props.datatext;
 
             var buttonText = 1 === this.hasComments && 1 !== this.props.freshBoard ? 'Reply' : 'Comment';
 
@@ -949,7 +927,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var Fragment = wp.element.Fragment;
-var removeFormat = wp.richText.removeFormat;
 
 var Comment = function (_React$Component) {
     _inherits(Comment, _React$Component);
@@ -983,7 +960,6 @@ var Comment = function (_React$Component) {
                 alert("Please write a comment to share!");
                 return false;
             }
-            var metaId = this.newText.id.substring(3);
             var elID = event.currentTarget.parentElement.parentElement.parentElement.parentElement.id;
             this.props.updateCommentFromBoard(newText, this.props.index, this.props.timestamp, this.props.dateTime, elID);
 
@@ -1009,10 +985,6 @@ var Comment = function (_React$Component) {
                 elID = elID[0].id;
                 var elIDRemove = elID;
                 var CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-                var _props = this.props,
-                    value = _props.value,
-                    onChange = _props.onChange;
-
                 elID = '_' + elID;
 
                 var data = {
@@ -1021,28 +993,12 @@ var Comment = function (_React$Component) {
                     'metaId': elID
                 };
                 // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-                jQuery.post(ajaxurl, data, function (response) {
+                jQuery.post(ajaxurl, data, function () {
                     jQuery('div#' + elIDRemove).remove();
                 });
 
-                var name = 'multidots/comment';
-
-                var _props2 = this.props,
-                    lastVal = _props2.lastVal,
-                    onChanged = _props2.onChanged;
-
-
+                // Remove Tag.
                 this.removeTag(elIDRemove);
-
-                //if (null === lastVal || undefined === onChanged) {
-                /*jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
-                 let removedComments = jQuery('body').attr('remove-comment');
-                removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
-                jQuery('body').attr('remove-comment', removedComments);
-                jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');*/
-                /*} else {
-                    onChanged(removeFormat(lastVal, name));
-                }*/
             }
         }
     }, {
@@ -1080,18 +1036,15 @@ var Comment = function (_React$Component) {
     }, {
         key: 'renderNormalMode',
         value: function renderNormalMode() {
-            var _props3 = this.props,
-                lastVal = _props3.lastVal,
-                onChanged = _props3.onChanged,
-                selectedText = _props3.selectedText,
-                index = _props3.index;
+            var index = this.props.index;
 
             var commentStatus = this.props.status ? this.props.status : 'draft';
 
+            var owner = '';
             try {
-                var owner = wp.data.select("core").getCurrentUser().id;
+                owner = wp.data.select("core").getCurrentUser().id;
             } catch (e) {
-                var owner = localStorage.getItem("userID");
+                owner = localStorage.getItem("userID");
             }
 
             var str = this.state.showEditedDraft ? this.props.editedDraft : this.props.children;
