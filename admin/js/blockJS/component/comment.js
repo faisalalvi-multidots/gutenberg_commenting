@@ -1,5 +1,4 @@
 const {Fragment} = wp.element;
-const {removeFormat} = wp.richText;
 
 export default class Comment extends React.Component {
 
@@ -27,7 +26,6 @@ export default class Comment extends React.Component {
             alert("Please write a comment to share!");
             return false;
         }
-        var metaId = this.newText.id.substring(3);
         var elID = event.currentTarget.parentElement.parentElement.parentElement.parentElement.id;
         this.props.updateCommentFromBoard(newText, this.props.index, this.props.timestamp, this.props.dateTime, elID);
 
@@ -51,7 +49,6 @@ export default class Comment extends React.Component {
             elID = elID[0].id;
             var elIDRemove = elID;
             const CurrentPostID = wp.data.select('core/editor').getCurrentPostId();
-            const {value, onChange} = this.props;
             elID = '_' + elID;
 
             var data = {
@@ -60,26 +57,12 @@ export default class Comment extends React.Component {
                 'metaId': elID
             };
             // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-            jQuery.post(ajaxurl, data, function (response) {
+            jQuery.post(ajaxurl, data, function () {
                 jQuery('div#' + elIDRemove).remove();
             });
 
-            let name = 'multidots/comment';
-
-            const {lastVal, onChanged} = this.props;
-
+            // Remove Tag.
             this.removeTag(elIDRemove);
-
-            //if (null === lastVal || undefined === onChanged) {
-                /*jQuery('[datatext="' + elIDRemove + '"]').addClass('removed');
-
-                let removedComments = jQuery('body').attr('remove-comment');
-                removedComments = undefined !== removedComments ? removedComments + ',' + elIDRemove : elIDRemove;
-                jQuery('body').attr('remove-comment', removedComments);
-                jQuery('body').append('<style>body [datatext="' + elIDRemove + '"] {background-color:transparent !important;}</style>');*/
-            /*} else {
-                onChanged(removeFormat(lastVal, name));
-            }*/
         }
     }
 
@@ -113,13 +96,14 @@ export default class Comment extends React.Component {
     }
 
     renderNormalMode() {
-        const {lastVal, onChanged, selectedText, index} = this.props;
+        const {index} = this.props;
         const commentStatus = this.props.status ? this.props.status : 'draft';
 
+        var owner = '';
         try {
-            var owner = wp.data.select("core").getCurrentUser().id;
+            owner = wp.data.select("core").getCurrentUser().id;
         } catch (e) {
-            var owner = localStorage.getItem("userID");
+            owner = localStorage.getItem("userID");
         }
 
         let str = this.state.showEditedDraft ? this.props.editedDraft : this.props.children;
