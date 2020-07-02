@@ -128,7 +128,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                       if (0 < diff.length) {
 
                         //Apply diff cleanup when got unwanted output from main diff.
-                        if ( 'core/list' === finalBlockProps.name && 12 < diff.length && null !== diff[3][1].match(/^#ff/) && null !== diff[4][1].match(/^rgb\(/) ) {
+                        if ( 'core/list' === finalBlockProps.name && 12 < diff.length && ( null !== diff[3][1].match(/^#/) || null !== diff[5][1].match(/^#/) ) && ( null !== diff[4][1].match(/^rgb\(/) || null !== diff[6][1].match(/^rgb\(/) ) ) {
                           dmp.diff_cleanupSemantic(diff);
                         }
 
@@ -240,6 +240,12 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                 diff[v][1] = prevDiff + diff[v][1].substring(0, diff[v][1].lastIndexOf(currentLastdiff));
                                 diff[v + 1][1] = currentLastdiff + diff[v + 1][1];
                                 ignoreCleanUp = true;
+                              } else if ( 'ins' === currentDiff && '<' === prevDiff && '/in' === nextDiff && '<' === currentLastdiff && diff[v + 2] && 1 === diff[v + 2][0] && '</ins>' === diff[v + 2][1].substring(0,6) ) {
+                                diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].lastIndexOf(prevDiff));
+                                diff[v][1] = prevDiff + diff[v][1] + diff[v + 1][1];
+                                diff[v + 1][1] = diff[v + 2][1].substring(0,6);
+                                diff[v + 2][1] = diff[v + 2][1].substring(6);
+                                ignoreCleanUp = true;
                               }
 
                               if ( 'core/list' === finalBlockProps.name ) {
@@ -260,15 +266,13 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                     updateOldContent = true;
                                     ignoreCleanUp = true;
                                   }
-                                } else if (DiffMatchPatch.DIFF_DELETE === operation && diff[v + 1] && null !== diff[v + 1][1].match(/^<\/ins><\/li>/) ) {
-                                  if (DiffMatchPatch.DIFF_INSERT === diff[v + 1][0] && diff[v + 2] && null !== diff[v + 2][1].match(/^<\/ins><\/li>$/) ) {
+                                } else if ( -1 === operation && diff[v + 1] && 1 === diff[v + 1][0] && null !== diff[v + 1][1].match(/^<\/ins><\/li>/) && diff[v + 2] && null !== diff[v + 2][1].match(/^<\/ins><\/li>$/) ) {
                                     let nextTagRemainingText = diff[v + 1][1].replace(/^<\/ins><\/li>/,'');
                                     diff[v + 1][0] = 0;
                                     diff[v + 1][1] = diff[v + 2][1];
                                     diff[v + 2][1] = nextTagRemainingText + diff[v + 2][1];
                                     diff[v + 2][0] = 1;
                                     ignoreCleanUp = true;
-                                  }
                                 } else if ( '<li><' === listPrevLastTag && '<li><' === diff[v][1].slice(-5) && ('ins id=' === listNextDiffTag || 'ins id=' === diff[v][1].substring(0, 7) ) ) {
                                   diff[v - 1][1] = diff[v - 1][1].substring(0,diff[v - 1][1].lastIndexOf(listPrevLastTag));
                                   diff[v][1] = listPrevLastTag + diff[v][1].substring(0,diff[v][1].lastIndexOf(listPrevLastTag));
@@ -315,21 +319,33 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                   diff[v + 1][1] = diff[v + 1][1].substring(11);
                                   ignoreCleanUp = true;
                                 } else if ( -1 === operation && diff[v + 1] && '</li>' === diff[v + 1][1].slice(-5) && 3 === diff.length ) {
-                                  //diff[v][1] = diff[v][1].replace(/<\/?li[^>]*>/g, '');
                                   if ( null !== diff[v][1].match(/<\/li><li>/) ) {
                                       let delArr = diff[v][1].split('</li><li>');
                                       let insertIndex = 1;
                                       for ( let d = 0; d < delArr.length; d++ ) {
                                         if ( '' !== delArr[d] ) {
+                                          let closingTags = '</li><li>';
                                           if ( 0 === d ) {
+                                            if ( null === delArr[d].match(/^<ins /) && null !== delArr[d].match(/<\/ins>$/) ) {
+                                              closingTags = '</ins>' + closingTags;
+                                              delArr[d] = delArr[d].substring(0, delArr[d].lastIndexOf('</ins>'));
+                                            }
                                             diff[v][1] = delArr[d];
-                                            diff.splice( v + insertIndex, 0, [0, '</li><li>']);
+                                            diff.splice( v + insertIndex, 0, [0, closingTags]);
                                             insertIndex += 1;
                                           } else {
-                                            diff.splice(v + insertIndex, 0, [-1, delArr[d]],[0, '</li><li>']);
-                                            insertIndex += 2;
+                                            if ( null !== delArr[d].match(/^<ins /) && null === delArr[d].match(/<\/ins>/) ) {
+                                              let matchedInstag = delArr[d].match(/<ins[^>]*>/);
+                                              diff[v + ( insertIndex -1) ][1] += matchedInstag;
+                                              delArr[d] = delArr[d].replace(/<ins[^>]*>/, '');
+                                            }
+                                            if ( d + 1 === delArr.length ) {
+                                              diff.splice(v + insertIndex, 0, [-1, delArr[d]]);
+                                            } else {
+                                              diff.splice(v + insertIndex, 0, [-1, delArr[d]],[0, closingTags]);
+                                              insertIndex += 2;
+                                            }
                                           }
-
                                         }
                                       }
                                     ignoreCleanUp = true;
@@ -401,30 +417,46 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                   diff[v + 2][1] = diff[v + 2][1].substring(closingInsTag.length) + closingInsTag;
                                   diff[v + 3][1] = diff[v + 3][1].substring(closingInsTag.length);
                                   ignoreCleanUp = true;
-                                } else if ( -1 === operation && 8 === diff.length && null !== diff[v][1].match(/<\/li><li>/) && null !== diff[v + 2][1].match(/^#ff/) && null !== diff[v + 3][1].match(/^rgb\(/) ) {
+                                } else if ( -1 === operation && 5 < diff.length && null !== diff[v][1].match(/<\/li><li>/) && ( null !== diff[v + 2][1].match(/^#ff/) || null !== diff[v + 2][1].match(/^#008/) ) && null !== diff[v + 3][1].match(/^rgb\(/) ) {
                                   diff[v + 2][0] = 0;
                                   diff[v + 3][0] = 0;
                                   diff[v + 3][1] = '';
-                                  diff[v + 5][0] = 0;
-                                  let delArr = diff[v][1].split('</li><li>');
-                                  let insertIndex = 1;
-                                  for ( let d = 0; d < delArr.length; d++ ) {
-                                    if ( '' !== delArr[d] ) {
-                                      if ( 0 === d ) {
-                                        diff[v][1] = delArr[d];
-                                        diff.splice( v + insertIndex, 0, [0, '</li><li>']);
-                                        insertIndex += 1;
-                                      } else {
-                                        if ( null !== delArr[d].match(/^<ins /) && null === delArr[d].match(/<\/ins>/) ) {
-                                          let matchedInstag = delArr[d].match(/<ins[^>]*>/);
-                                          diff[v + ( insertIndex -1) ][1] += matchedInstag;
-                                          delArr[d] = delArr[d].replace(/<ins[^>]*>/, '');
-                                        }
-                                        if ( d + 1 === delArr.length ) {
-                                          diff.splice(v + insertIndex, 0, [-1, delArr[d]]);
+                                  if ( 7 < diff.length ) {
+                                    diff[v + 5][0] = 0;
+                                    let startIndex = v + 6;
+                                    for ( let k = startIndex; k < diff.length; k++ ) {
+                                      if ( null !== diff[k][1].match(/^rgb\(/) && null !== diff[k - 1][1].match(/^(#008000|#ff0000)$/) ) {
+                                        diff[k][0] = 0;
+                                        diff[k][1] = '';
+                                        diff[k - 1][0] = 0;
+                                      }
+                                    }
+                                  }
+                                  if ( diff[v][1].match(/^<\/li><li><ins/) && 1 === (diff[v][1].match(/<li>/g) || []).length && diff[v - 1] && 0 === diff[v - 1][0] ) {
+                                    let textStartIndex = diff[v][1].lastIndexOf(';">') + 3;
+                                    diff[v - 1][1] += diff[v][1].substring(0, textStartIndex);
+                                    diff[v][1] = diff[v][1].substring(textStartIndex);
+                                  } else {
+                                    let delArr = diff[v][1].split('</li><li>');
+                                    let insertIndex = 1;
+                                    for ( let d = 0; d < delArr.length; d++ ) {
+                                      if ( '' !== delArr[d] ) {
+                                        if ( 0 === d ) {
+                                          diff[v][1] = delArr[d];
+                                          diff.splice( v + insertIndex, 0, [0, '</li><li>']);
+                                          insertIndex += 1;
                                         } else {
-                                          diff.splice(v + insertIndex, 0, [-1, delArr[d]],[0, '</li><li>']);
-                                          insertIndex += 2;
+                                          if ( null !== delArr[d].match(/^<ins /) && null === delArr[d].match(/<\/ins>/) ) {
+                                            let matchedInstag = delArr[d].match(/<ins[^>]*>/);
+                                            diff[v + ( insertIndex -1) ][1] += matchedInstag;
+                                            delArr[d] = delArr[d].replace(/<ins[^>]*>/, '');
+                                          }
+                                          if ( d + 1 === delArr.length ) {
+                                            diff.splice(v + insertIndex, 0, [-1, delArr[d]]);
+                                          } else {
+                                            diff.splice(v + insertIndex, 0, [-1, delArr[d]],[0, '</li><li>']);
+                                            insertIndex += 2;
+                                          }
                                         }
                                       }
                                     }
