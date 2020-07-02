@@ -1,7 +1,7 @@
-/**hidden
- * All of the CSS for your admin-specific functionality should be
- * included in this file.
- */
+/**
+  * All of the CSS for your admin-specific functionality should be
+  * included in this file.
+  */
 .tooltip {
   position: relative;
   display: inline-block;
@@ -14,7 +14,7 @@
   color: #fff;
   text-align: center;
   border-radius: 6px;
-  padding: 5px 0;    /* Position the tooltip */
+  padding: 5px 0; /* Position the tooltip */
   position: absolute;
   z-index: 1;
 }
@@ -75,15 +75,13 @@ div#Div1 {
   display: block;
 }
 
-.boardTop {
+mdspan {
+  background: #fdf0b6;
 }
-mdspan{
-  background:#fdf0b6;
-}
-.readMoreSpan{
+.readMoreSpan {
   display: none;
 }
-.readMoreSpan.active{
+.readMoreSpan.active {
   display: block;
 }
 .cls-board-outer {
@@ -92,7 +90,7 @@ mdspan{
   overflow: auto;
   background: #fff;
   width: 285px;
-  box-shadow: rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+  box-shadow: rgba(60, 64, 67, 0.15) 0 2px 6px 2px;
   border-radius: 8px;
   margin-bottom: 15px;
   transition: all 0.3s;
@@ -113,7 +111,6 @@ mdspan{
 }
 
 .cls-board-outer .board .commentContainer.draft {
-  background: #6a687130;
   display: none;
   background: none;
 }
@@ -154,7 +151,8 @@ mdspan{
   line-height: 1.2;
 }
 
-.cls-board-outer .board .shareCommentContainer textarea, .cls-board-outer .board .commentContainer .commentText textarea {
+.cls-board-outer .board .shareCommentContainer textarea,
+.cls-board-outer .board .commentContainer .commentText textarea {
   width: 100%;
   display: block;
   height: 35px;
@@ -166,7 +164,7 @@ mdspan{
   border: 0;
   color: #fff;
   font-weight: bold;
-  letter-spacing: 0.50px;
+  letter-spacing: 0.5px;
   border-radius: 4px;
   padding: 5px 15px;
   outline: none;
@@ -176,12 +174,13 @@ mdspan{
 }
 
 .cls-board-outer .board .shareCommentContainer .btn.btn-cancel {
-    margin-left: 10px;
-    color: #3584ea;
-    background: #ffffff;
+  margin-left: 10px;
+  color: #3584ea;
+  background: #ffffff;
 }
 
-.cls-board-outer .board .shareCommentContainer textarea:focus + button, .cls-board-outer .board .shareCommentContainer.hovered button {
+.cls-board-outer .board .shareCommentContainer textarea:focus + button,
+.cls-board-outer .board .shareCommentContainer.hovered button {
   display: inline-block;
 }
 
@@ -201,7 +200,7 @@ mdspan{
   margin-top: 10px;
 }
 
-.commented-on:after {
+.commented-on::after {
   content: '';
   background: rgb(2, 0, 36);
   background: linear-gradient(280deg, rgba(2, 0, 36, 1) 0%, rgba(190, 173, 173) 5%, rgba(255, 255, 255, 1) 100%);
@@ -214,7 +213,7 @@ mdspan{
   top: 3px;
 }
 
-.commented-on:before {
+.commented-on::before {
   content: '';
   background: rgb(2, 0, 36);
   background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgb(190, 173, 173) 0%, rgba(255, 255, 255, 0) 100%);
@@ -282,22 +281,22 @@ mdspan{
   float: right;
 }
 
-#custom-history-popup:before {
+#custom-history-popup::before {
   content: 'Comment Activity';
   font-size: 20px;
   display: block;
   margin: 0 0 30px;
-  font-weight: 700
+  font-weight: 700;
 }
 
-#custom-history-popup:after {
+#custom-history-popup::after {
   content: '';
   position: absolute;
   top: 50px;
   right: 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   z-index: -1;
-  left: 0px;
+  left: 0;
 }
 
 .user-title {
@@ -326,7 +325,8 @@ span.user-name {
   background: #ff9c00 !important;
 }
 
-#custom-history-popup table th, #custom-history-popup table td {
+#custom-history-popup table th,
+#custom-history-popup table td {
   border: 1px solid #23282d6e;
 }
 
@@ -342,7 +342,8 @@ span.user-name {
   padding: 15px 0;
 }
 
-#comments-toggle.active, #history-toggle.active {
+#comments-toggle.active,
+#history-toggle.active {
   color: #3b923b;
 }
 
@@ -354,7 +355,7 @@ span.user-name {
   display: none;
   position: absolute;
   background: #fff;
-  box-shadow: rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+  box-shadow: rgba(60, 64, 67, 0.15) 0 2px 6px 2px;
   right: 0;
   border-radius: 4px;
   padding-top: 5px;
@@ -418,12 +419,14 @@ span.user-name {
   background-color: white;
 }
 
-.btn-comment, .buttons-holder {
+.btn-comment,
+.buttons-holder {
   opacity: 0.3;
 }
 
-.cls-board-outer:hover .btn-comment, .cls-board-outer:hover  .buttons-holder {
-  opacity: 1
+.cls-board-outer:hover .btn-comment,
+.cls-board-outer:hover .buttons-holder {
+  opacity: 1;
 }
 
 .cls-board-outer .commentContainer:not(:first-child) .buttons-opner button {
@@ -454,10 +457,6 @@ mdspan[data-rich-text-format-boundary="true"] {
   background-color: #edf2f9;
 }
 
-.cls-board-outer.focus {
-  left: -30px;
-}
-
 /* Dont replace */
 #md-span-comments {
   position: absolute;
@@ -471,7 +470,7 @@ mdspan[data-rich-text-format-boundary="true"] {
   max-height: 350px; /* avoid a bug with scrolling on initial load and repositioning */
 }
 
-#md-span-comments.comments-loader:before {
+#md-span-comments.comments-loader::before {
   content: 'Loading comments...';
   font-size: 10px;
 }
@@ -506,7 +505,8 @@ ul.charMap--category {
   font-size: 14px;
 }
 
-.charMap--category-menu .charMap--category-menu-item.active, .charMap--category li a:hover {
+.charMap--category-menu .charMap--category-menu-item.active,
+.charMap--category li a:hover {
   background: #0085ba;
 }
 
@@ -551,7 +551,7 @@ button.btn-comment.btn-accept {
   border-color: transparent !important;
   min-width: 24px;
   vertical-align: middle;
-  margin: 0px 8px 0px 0px;
+  margin: 0 8px 0 0;
   line-height: 1;
 }
 
@@ -575,7 +575,7 @@ button.btn-comment.btn-reject {
   border-color: transparent !important;
   min-width: 24px;
   vertical-align: middle;
-  margin: 0px 8px 0px 0px;
+  margin: 0 8px 0 0;
   line-height: 1;
 }
 
@@ -589,6 +589,7 @@ button.btn-comment.btn-reject {
 
 .cls-board-outer.focus {
   background: #ebfdff;
+  left: -30px;
 }
 
 .custom-buttons button {
@@ -623,7 +624,7 @@ body.hide-comments #md-span-comments {
   animation-timing-function: linear;
   height: 10px;
   width: 10px;
-  border: 2px solid #FFF;
+  border: 2px solid #fff;
   border-right-color: transparent;
   border-radius: 50%;
   position: absolute;
@@ -632,7 +633,7 @@ body.hide-comments #md-span-comments {
 }
 
 .cls-board-outer .board .shareCommentContainer.loading .btn-success {
-    padding-right: 30px;
+  padding-right: 30px;
 }
 
 @-webkit-keyframes rotate-forever {
@@ -691,6 +692,5 @@ body.hide-comments #md-span-comments {
   }
 
 }
-
-.block-editor-writing-flow {float: left;padding-left: 100px;}
-.block-editor-writing-flow::after {content: '';clear: both;display: block;}
+.block-editor-writing-flow { float: left; padding-left: 100px; }
+.block-editor-writing-flow::after { content: ''; clear: both; display: block; }
