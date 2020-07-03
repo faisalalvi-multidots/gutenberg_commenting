@@ -1712,6 +1712,11 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                   diff[v + 1][1] = diff[v + 2][1].substring(0, 6);
                                   diff[v + 2][1] = diff[v + 2][1].substring(6);
                                   ignoreCleanUp = true;
+                                } else if (diff[v - 1] && null !== diff[v - 1][1].match(/<(strong|em|s|code)>$/) && diff[v + 1] && null !== diff[v + 1][1].match(/^<ins/) && null !== null !== diff[v + 1][1].match(/<\/(strong|em|s|code)>/)) {
+                                  var prevStartFormatTag = diff[v - 1][1].match(/<(strong|em|s|code)>$/)[0];
+                                  diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].length - prevStartFormatTag.length);
+                                  diff[v + 1][1] = prevStartFormatTag + diff[v + 1][1];
+                                  ignoreCleanUp = true;
                                 }
 
                                 if ('core/list' === finalBlockProps.name) {
@@ -1963,6 +1968,125 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                     }
                                     ignoreCleanUp = true;
                                     break;
+                                  } else if (-1 === operation && null !== diff[v][1].match(/<\/li><li>/) && null !== diff[v][1].match(/<(strong|em)>/) && diff[v + 2] && null !== diff[v + 2][1].match(/<\/(strong|em)>/) && 1 === diff[v + 1][0] && null !== diff[v + 1][1].match(/^<(strong|em)>$/)) {
+                                    diff[v + 1][0] = 0;
+                                    var _startIndex = v + 4;
+                                    for (var _k = _startIndex; _k < diff.length; _k++) {
+                                      if (null !== diff[_k][1].match(/^rgb\(/) && null !== diff[_k - 1][1].match(/^(#008000|#ff0000)$/)) {
+                                        diff[_k][0] = 0;
+                                        diff[_k][1] = '';
+                                        diff[_k - 1][0] = 0;
+                                      }
+                                    }
+                                    var _delArr5 = diff[v][1].split('</li><li>');
+                                    var _insertIndex5 = 1;
+                                    for (var j = 0; j < _delArr5.length; j++) {
+                                      if ('' !== _delArr5[j]) {
+                                        if (0 === j) {
+                                          diff[v][1] = _delArr5[j];
+                                          diff.splice(v + _insertIndex5, 0, [0, '</li><li>']);
+                                          _insertIndex5 += 1;
+                                        } else {
+                                          if (j + 1 === _delArr5.length) {
+                                            if (null !== _delArr5[j].match(/<(strong|em)>/) && null === _delArr5[j].match(/<\/(strong|em)>/)) {
+                                              _delArr5[j] += _delArr5[j].match(/<(strong|em)>/)[0].replace('<', '</');
+                                            }
+                                            diff.splice(v + _insertIndex5, 0, [-1, _delArr5[j]]);
+                                          } else {
+                                            diff.splice(v + _insertIndex5, 0, [-1, _delArr5[j]], [0, '</li><li>']);
+                                            _insertIndex5 += 2;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    ignoreCleanUp = true;
+                                    break;
+                                  } else if (-1 === operation && null !== diff[v][1].match(/<\/li><li>/) && diff[v + 3] && null !== diff[v + 3][1].match(/<\/(strong|em)>/) && null !== diff[v + 1][1].match(/^<(strong|em)>$/) && -1 === diff[v + 2][0]) {
+                                    var delElements = diff[v][1].split('</li><li>');
+                                    var _insertIndex6 = 1;
+                                    for (var _n = 0; _n < delElements.length; _n++) {
+                                      if ('' !== delElements[_n]) {
+                                        if (0 === _n) {
+                                          diff[v][1] = delElements[_n];
+                                          diff.splice(v + _insertIndex6, 0, [0, '</li><li>']);
+                                          _insertIndex6 += 1;
+                                        } else {
+                                          if (_n + 1 === delElements.length) {
+                                            diff.splice(v + _insertIndex6, 0, [-1, delElements[_n]]);
+                                          } else {
+                                            diff.splice(v + _insertIndex6, 0, [-1, delElements[_n]], [0, '</li><li>']);
+                                            _insertIndex6 += 2;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    ignoreCleanUp = true;
+                                    break;
+                                  } else if (-1 === operation && null !== diff[v][1].match(/<\/li><li>/) && null !== diff[v][1].match(/<span style="text-decoration/) && diff[v + 2] && '</span>' === diff[v + 2][1] && -1 === diff[v + 2][0]) {
+                                    diff[v + 2][0] = 0;
+                                    diff[v + 1][1] = '<span style="text-decoration: underline;">' + diff[v + 1][1];
+                                    var _startIndex2 = v + 3;
+                                    for (var _k2 = _startIndex2; _k2 < diff.length; _k2++) {
+                                      if (null !== diff[_k2][1].match(/^rgb\(/) && null !== diff[_k2 - 1][1].match(/^(#008000|#ff0000)$/)) {
+                                        diff[_k2][0] = 0;
+                                        diff[_k2][1] = '';
+                                        diff[_k2 - 1][0] = 0;
+                                      }
+                                    }
+                                    var _delElements = diff[v][1].split('</li><li>');
+                                    var _insertIndex7 = 1;
+                                    for (var _n2 = 0; _n2 < _delElements.length; _n2++) {
+                                      if ('' !== _delElements[_n2]) {
+                                        if (0 === _n2) {
+                                          diff[v][1] = _delElements[_n2];
+                                          diff.splice(v + _insertIndex7, 0, [0, '</li><li>']);
+                                          _insertIndex7 += 1;
+                                        } else {
+                                          if (_n2 + 1 === _delElements.length) {
+                                            if (null !== _delElements[_n2].match(/<span style="text-decoration/) && null === _delElements[_n2].match(/<\/span>/)) {
+                                              _delElements[_n2] += '</span>';
+                                            }
+                                            diff.splice(v + _insertIndex7, 0, [-1, _delElements[_n2]]);
+                                          } else {
+                                            diff.splice(v + _insertIndex7, 0, [-1, _delElements[_n2]], [0, '</li><li>']);
+                                            _insertIndex7 += 2;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    ignoreCleanUp = true;
+                                    break;
+                                  } else if (-1 === operation && null !== diff[v][1].match(/<\/li><li>/) && null !== diff[v][1].match(/<span style="text-decoration/) && null !== diff[v][1].match(/<\/span>$/) && diff[v + 1] && 1 === diff[v + 1][0]) {
+                                    diff[v + 1][0] = 0;
+                                    diff[v + 1][1] = '<span style="text-decoration: underline;">' + diff[v + 1][1] + '</span>';
+                                    var _startIndex3 = v + 2;
+                                    for (var _k3 = _startIndex3; _k3 < diff.length; _k3++) {
+                                      if (null !== diff[_k3][1].match(/^rgb\(/) && null !== diff[_k3 - 1][1].match(/^(#008000|#ff0000)$/)) {
+                                        diff[_k3][0] = 0;
+                                        diff[_k3][1] = '';
+                                        diff[_k3 - 1][0] = 0;
+                                      }
+                                    }
+                                    var _delElements2 = diff[v][1].split('</li><li>');
+                                    var _insertIndex8 = 1;
+                                    for (var _n3 = 0; _n3 < _delElements2.length; _n3++) {
+                                      if ('' !== _delElements2[_n3]) {
+                                        if (0 === _n3) {
+                                          diff[v][1] = _delElements2[_n3];
+                                          diff.splice(v + _insertIndex8, 0, [0, '</li><li>']);
+                                          _insertIndex8 += 1;
+                                        } else {
+                                          if (_n3 + 1 === _delElements2.length) {
+                                            diff.splice(v + _insertIndex8, 0, [-1, _delElements2[_n3]]);
+                                          } else {
+                                            diff.splice(v + _insertIndex8, 0, [-1, _delElements2[_n3]], [0, '</li><li>']);
+                                            _insertIndex8 += 2;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    ignoreCleanUp = true;
+                                    break;
                                   } else if (1 === operation && diff[v - 2] && 1 === diff[v - 2][0] && null !== diff[v - 2][1].match(/^<ins/) && null !== diff[v - 1][1].match(/^<\/li><li>/) && diff[v + 1]) {
                                     var currentDiffText = null !== diff[v][1].match(/<ins /) ? diff[v][1].substring(0, diff[v][1].indexOf('<ins')) : diff[v][1];
                                     var nextMatchText = null === diff[v + 1][1].match(/^<\/li>/) ? diff[v + 1][1].substring(0, diff[v + 1][1].indexOf('</li>')) : diff[v + 1][1];
@@ -1996,7 +2120,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                       break;
                                     }
                                   } else {
-                                    dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                                    dynamicRegex = 'a' === tagArray[i] ? 'a [^>]*">' : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
                                   }
 
                                   var regex = new RegExp(dynamicRegex, 'g');
@@ -2033,16 +2157,16 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                 diff[2][1] = lastLiTag + diff[2][1].replace(/<\/?li[^>]*>/g, '') + diff[3][1].substring(0, lastElementIndex);
                                 diff[3][1] = diff[3][1].substring(lastElementIndex);
                                 if (null !== diff[deleteElementIndex][1].match(/<\/li><li>/)) {
-                                  var _delArr5 = diff[deleteElementIndex][1].split('</li><li>');
-                                  var _insertIndex5 = 1;
-                                  for (var _d5 = 0; _d5 < _delArr5.length; _d5++) {
-                                    if ('' !== _delArr5[_d5]) {
-                                      var _finalDelTag = '<li>' + _delArr5[_d5] + '</li>';
+                                  var _delArr6 = diff[deleteElementIndex][1].split('</li><li>');
+                                  var _insertIndex9 = 1;
+                                  for (var _d5 = 0; _d5 < _delArr6.length; _d5++) {
+                                    if ('' !== _delArr6[_d5]) {
+                                      var _finalDelTag = '<li>' + _delArr6[_d5] + '</li>';
                                       if (0 === _d5) {
                                         diff[deleteElementIndex][1] = _finalDelTag;
                                       } else {
-                                        diff.splice(deleteElementIndex + _insertIndex5, 0, [-1, _finalDelTag]);
-                                        _insertIndex5++;
+                                        diff.splice(deleteElementIndex + _insertIndex9, 0, [-1, _finalDelTag]);
+                                        _insertIndex9++;
                                       }
                                     }
                                   }
@@ -2077,7 +2201,7 @@ var timeFormat = suggestionBlock ? suggestionBlock.timeFormat : 'g:i a';
                                     if (__WEBPACK_IMPORTED_MODULE_1_diff_match_patch___default.a.DIFF_INSERT === op) {
                                       _dynamicRegex = "<(" + tagArray[h] + "|\/" + tagArray[h] + ")";
                                     } else {
-                                      _dynamicRegex = 'a' === tagArray[h] ? "a [^>]*>" : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
+                                      _dynamicRegex = 'a' === tagArray[h] ? 'a [^>]*">' : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
                                     }
 
                                     var _regex = new RegExp(_dynamicRegex, "g");

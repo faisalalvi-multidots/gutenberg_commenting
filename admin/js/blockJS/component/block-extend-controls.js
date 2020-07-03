@@ -246,6 +246,11 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                 diff[v + 1][1] = diff[v + 2][1].substring(0,6);
                                 diff[v + 2][1] = diff[v + 2][1].substring(6);
                                 ignoreCleanUp = true;
+                              } else if ( diff[v - 1] && null !== diff[v - 1][1].match(/<(strong|em|s|code)>$/) && diff[v + 1] && null !== diff[v + 1][1].match(/^<ins/) && null !== null !== diff[v + 1][1].match(/<\/(strong|em|s|code)>/) ) {
+                                let prevStartFormatTag = diff[v - 1][1].match(/<(strong|em|s|code)>$/)[0];
+                                diff[v - 1][1] = diff[v - 1][1].substring(0, diff[v - 1][1].length - prevStartFormatTag.length );
+                                diff[v + 1][1] = prevStartFormatTag + diff[v + 1][1];
+                                ignoreCleanUp = true;
                               }
 
                               if ( 'core/list' === finalBlockProps.name ) {
@@ -463,6 +468,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                   }
                                   ignoreCleanUp = true;
                                   break;
+
                                 } else if ( 1 === operation && null !== diff[v][1].match(/^<\/ins><\/li><li><ins/) && diff[v + 1] && null !== diff[v + 1][1].match(/<\/ins><\/li>/) && diff[v - 1] ) {
                                   diff[v - 1][1] += diff[v][1].substring(0, diff[v][1].indexOf('<li><ins'));
                                   diff[v][1] = diff[v][1].substring(diff[v][1].indexOf('<li><ins')) + diff[v + 1][1].substring(0, diff[v + 1][1].indexOf('</ins></li>') + 11);
@@ -479,17 +485,136 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                 } else if ( 1 === operation && null !== diff[v][1].match(/^<ins/) && null !== diff[v][1].match(/<\/ins><\/li><li><ins/) && diff[v + 1] && null !== diff[v + 1][1].match(/^<\/li>/) ) {
                                   let insArr = diff[v][1].split('</li><li>');
                                   let insertIndex = 1;
-                                  for ( let n = 0; n < insArr.length; n++ ) {
-                                    if ( '' !== insArr[n] ) {
-                                      if ( 0 === n ) {
+                                  for (let n = 0; n < insArr.length; n++) {
+                                    if ('' !== insArr[n]) {
+                                      if (0 === n) {
                                         diff[v][1] = insArr[n];
+                                        diff.splice(v + insertIndex, 0, [0, '</li><li>']);
+                                        insertIndex += 1;
+                                      } else {
+                                        if (n + 1 === insArr.length) {
+                                          diff.splice(v + insertIndex, 0, [1, insArr[n]]);
+                                        } else {
+                                          diff.splice(v + insertIndex, 0, [1, insArr[n]], [0, '</li><li>']);
+                                          insertIndex += 2;
+                                        }
+                                      }
+                                    }
+                                  }
+                                  ignoreCleanUp = true;
+                                  break;
+                                } else if ( -1 === operation && null !== diff[v][1].match(/<\/li><li>/) && null !== diff[v][1].match(/<(strong|em)>/) && diff[v + 2] && null !== diff[v + 2][1].match(/<\/(strong|em)>/) && 1 === diff[v + 1][0] && null !== diff[v + 1][1].match(/^<(strong|em)>$/) ) {
+                                  diff[v + 1][0] = 0;
+                                  let startIndex = v + 4;
+                                  for ( let k = startIndex; k < diff.length; k++ ) {
+                                    if ( null !== diff[k][1].match(/^rgb\(/) && null !== diff[k - 1][1].match(/^(#008000|#ff0000)$/) ) {
+                                      diff[k][0] = 0;
+                                      diff[k][1] = '';
+                                      diff[k - 1][0] = 0;
+                                    }
+                                  }
+                                  let delArr = diff[v][1].split('</li><li>');
+                                  let insertIndex = 1;
+                                  for ( let j = 0; j < delArr.length; j++ ) {
+                                    if ( '' !== delArr[j] ) {
+                                      if ( 0 === j ) {
+                                        diff[v][1] = delArr[j];
                                         diff.splice( v + insertIndex, 0, [0, '</li><li>']);
                                         insertIndex += 1;
                                       } else {
-                                        if ( n + 1 === insArr.length ) {
-                                          diff.splice(v + insertIndex, 0, [1, insArr[n]]);
+                                        if ( j + 1 === delArr.length ) {
+                                          if ( null !== delArr[j].match(/<(strong|em)>/) && null === delArr[j].match(/<\/(strong|em)>/) ) {
+                                            delArr[j] += delArr[j].match(/<(strong|em)>/)[0].replace('<', '</');
+                                          }
+                                          diff.splice(v + insertIndex, 0, [-1, delArr[j]]);
                                         } else {
-                                          diff.splice(v + insertIndex, 0, [1, insArr[n]],[0, '</li><li>']);
+                                          diff.splice(v + insertIndex, 0, [-1, delArr[j]],[0, '</li><li>']);
+                                          insertIndex += 2;
+                                        }
+                                      }
+                                    }
+                                  }
+                                  ignoreCleanUp = true;
+                                  break;
+                                } else if ( -1 === operation && null !== diff[v][1].match(/<\/li><li>/) && diff[v + 3] && null !== diff[v + 3][1].match(/<\/(strong|em)>/) && null !== diff[v + 1][1].match(/^<(strong|em)>$/) && -1 === diff[v + 2][0] ) {
+                                  let delElements = diff[v][1].split('</li><li>');
+                                  let insertIndex = 1;
+                                  for (let n = 0; n < delElements.length; n++) {
+                                    if ('' !== delElements[n]) {
+                                      if (0 === n) {
+                                        diff[v][1] = delElements[n];
+                                        diff.splice(v + insertIndex, 0, [0, '</li><li>']);
+                                        insertIndex += 1;
+                                      } else {
+                                        if (n + 1 === delElements.length) {
+                                          diff.splice(v + insertIndex, 0, [-1, delElements[n]]);
+                                        } else {
+                                          diff.splice(v + insertIndex, 0, [-1, delElements[n]], [0, '</li><li>']);
+                                          insertIndex += 2;
+                                        }
+                                      }
+                                    }
+                                  }
+                                  ignoreCleanUp = true;
+                                  break;
+                                } else if ( -1 === operation && null !== diff[v][1].match(/<\/li><li>/) && null !== diff[v][1].match(/<span style="text-decoration/) && diff[v + 2] && '</span>' === diff[v + 2][1] && -1 === diff[v + 2][0] ) {
+                                  diff[v + 2][0] = 0;
+                                  diff[v + 1][1] = '<span style="text-decoration: underline;">' + diff[v + 1][1];
+                                  let startIndex = v + 3;
+                                  for ( let k = startIndex; k < diff.length; k++ ) {
+                                    if ( null !== diff[k][1].match(/^rgb\(/) && null !== diff[k - 1][1].match(/^(#008000|#ff0000)$/) ) {
+                                      diff[k][0] = 0;
+                                      diff[k][1] = '';
+                                      diff[k - 1][0] = 0;
+                                    }
+                                  }
+                                  let delElements = diff[v][1].split('</li><li>');
+                                  let insertIndex = 1;
+                                  for (let n = 0; n < delElements.length; n++) {
+                                    if ('' !== delElements[n]) {
+                                      if (0 === n) {
+                                        diff[v][1] = delElements[n];
+                                        diff.splice(v + insertIndex, 0, [0, '</li><li>']);
+                                        insertIndex += 1;
+                                      } else {
+                                        if (n + 1 === delElements.length) {
+                                          if (null !== delElements[n].match(/<span style="text-decoration/) && null === delElements[n].match(/<\/span>/)) {
+                                            delElements[n] += '</span>';
+                                          }
+                                          diff.splice(v + insertIndex, 0, [-1, delElements[n]]);
+                                        } else {
+                                          diff.splice(v + insertIndex, 0, [-1, delElements[n]], [0, '</li><li>']);
+                                          insertIndex += 2;
+                                        }
+                                      }
+                                    }
+                                  }
+                                  ignoreCleanUp = true;
+                                  break;
+                                } else if ( -1 === operation && null !== diff[v][1].match(/<\/li><li>/) && null !== diff[v][1].match(/<span style="text-decoration/) && null !== diff[v][1].match(/<\/span>$/) && diff[v + 1] && 1 === diff[v + 1][0] ) {
+                                  diff[v + 1][0] = 0;
+                                  diff[v + 1][1] = '<span style="text-decoration: underline;">' + diff[v + 1][1] + '</span>';
+                                  let startIndex = v + 2;
+                                  for ( let k = startIndex; k < diff.length; k++ ) {
+                                    if ( null !== diff[k][1].match(/^rgb\(/) && null !== diff[k - 1][1].match(/^(#008000|#ff0000)$/) ) {
+                                      diff[k][0] = 0;
+                                      diff[k][1] = '';
+                                      diff[k - 1][0] = 0;
+                                    }
+                                  }
+                                  let delElements = diff[v][1].split('</li><li>');
+                                  let insertIndex = 1;
+                                  for (let n = 0; n < delElements.length; n++) {
+                                    if ('' !== delElements[n]) {
+                                      if (0 === n) {
+                                        diff[v][1] = delElements[n];
+                                        diff.splice(v + insertIndex, 0, [0, '</li><li>']);
+                                        insertIndex += 1;
+                                      } else {
+                                        if (n + 1 === delElements.length) {
+                                          diff.splice(v + insertIndex, 0, [-1, delElements[n]]);
+                                        } else {
+                                          diff.splice(v + insertIndex, 0, [-1, delElements[n]], [0, '</li><li>']);
                                           insertIndex += 2;
                                         }
                                       }
@@ -530,7 +655,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                     break;
                                   }
                                 } else {
-                                  dynamicRegex = 'a' === tagArray[i] ? "a [^>]*>" : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
+                                  dynamicRegex = 'a' === tagArray[i] ? 'a [^>]*">' : "(" + tagArray[i] + "|\/" + tagArray[i] + ")>";
                                 }
 
                                 let regex = new RegExp(dynamicRegex, 'g');
@@ -611,7 +736,7 @@ export default createHigherOrderComponent( ( BlockEdit ) => {
                                   if (DiffMatchPatch.DIFF_INSERT === op) {
                                     dynamicRegex = "<(" + tagArray[h] + "|\/" + tagArray[h] + ")";
                                   } else {
-                                    dynamicRegex = 'a' === tagArray[h] ? "a [^>]*>" : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
+                                    dynamicRegex = 'a' === tagArray[h] ? 'a [^>]*">' : "(" + tagArray[h] + "|\/" + tagArray[h] + ")>";
                                   }
 
                                   let regex = new RegExp(dynamicRegex, "g");

@@ -782,4 +782,5 @@ SUGGESTIONS FEATURE CSS SHOULD BE ADDED BELOW
 .suggestion-mode .block-editor-format-toolbar button[aria-label="Link"], .suggestion-mode .block-editor-format-toolbar button[aria-label="Unlink"] { display: none;}
 .suggestion-mode .components-dropdown-menu__menu .components-button:nth-child(3), .suggestion-mode .components-dropdown-menu__menu .components-button:nth-child(5){display:none;}
 .suggestion-mode .components-popover .block-editor-link-control{display:none;}
+.suggestion-mode .block-editor-block-contextual-toolbar[data-type="core/list"] .block-editor-block-toolbar__slot > .components-toolbar{display: none;}
 
