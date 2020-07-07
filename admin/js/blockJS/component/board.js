@@ -1,4 +1,6 @@
 import Comment from "./comment";
+import React from 'react'
+import PropTypes from 'prop-types';
 
 const {removeFormat} = wp.richText;
 
@@ -157,8 +159,7 @@ export default class Board extends React.Component {
             'metaId': metaID
         };
         // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-        jQuery.post(ajaxurl, data, function () {
-        });
+        jQuery.post(ajaxurl, data, function () {});
         this.setState({comments: arr})
     }
 
@@ -281,8 +282,6 @@ export default class Board extends React.Component {
                 status={status}
                 lastVal={lastVal}
                 onChanged={onChanged}
-                /*lastVal={value}
-                onChanged={onChange}*/
                 selectedText={selectedText}
                 timestamp={cTimestamp}
                 editedDraft={editedDraft}
@@ -303,7 +302,6 @@ export default class Board extends React.Component {
         if ( 0 === jQuery('#'+ datatext + ' .boardTop .commentContainer').length ) {
             onChanged(removeFormat(lastVal, name));
         }
-
     }
 
     render() {
@@ -334,3 +332,14 @@ export default class Board extends React.Component {
         );
     }
 }
+
+// Typecheck.
+Board.propTypes = {
+    lastVal: PropTypes.object,
+    datatext: PropTypes.string,
+    onChanged: PropTypes.func,
+    selectedText: PropTypes.string,
+    commentedOnText: PropTypes.string,
+    freshBoard: PropTypes.number,
+    onLoadFetch: PropTypes.number,
+};

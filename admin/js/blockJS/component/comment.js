@@ -1,5 +1,7 @@
 const {Fragment} = wp.element;
-
+import React from 'react'
+import PropTypes from 'prop-types';
+ 
 export default class Comment extends React.Component {
 
     constructor(props) {
@@ -13,6 +15,7 @@ export default class Comment extends React.Component {
         this.cancelEdit = this.cancelEdit.bind(this);
         this.removeTag = this.removeTag.bind(this);
         this.state = {editing: false, showEditedDraft: false};
+
     }
 
     edit() {
@@ -194,3 +197,22 @@ export default class Comment extends React.Component {
         }
     }
 }
+
+// Typecheck.
+Comment.propTypes = {
+    key: PropTypes.number,
+    index: PropTypes.number,
+    removeCommentFromBoard: PropTypes.func,
+    updateCommentFromBoard: PropTypes.func,
+    userName: PropTypes.string,
+    dateTime: PropTypes.string,
+    profileURL: PropTypes.string,
+    userID: PropTypes.number,
+    status: PropTypes.string,
+    lastVal: PropTypes.object,
+    onChanged: PropTypes.func,
+    selectedText: PropTypes.string,
+    timestamp: PropTypes.string,
+    editedDraft: PropTypes.string,
+    children: PropTypes.string,
+};
