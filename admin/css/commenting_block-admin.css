@@ -694,3 +694,10 @@ body.hide-comments #md-span-comments {
 }
 .block-editor-writing-flow { float: left; padding-left: 100px; }
 .block-editor-writing-flow::after { content: ''; clear: both; display: block; }
+
+.hide-me {
+  height : 0px;
+  padding:0 !important;
+  margin:0 !important;
+  display:block;
+}

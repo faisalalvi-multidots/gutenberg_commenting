@@ -93,6 +93,16 @@
             $('#comments-toggle').toggleClass('active');
         });
 
+        // Hide Comments from Dropdown
+        $(document).on('click', '[aria-label="More rich text controls"]', function () {
+            const _this = $(this);
+            setTimeout( function() {
+                if( $('body').hasClass('hide-comments') ) {
+                    $('button.components-dropdown-menu__menu-item .dashicons-admin-comments').parents('button').toggleClass('hide-me');
+                }
+            }, 10);
+        });
+
         // Force action to publish draft comments even on clicking 'Disabled Update Button'.
         // This function handles the process even when content is not changed but comments are modified/added.
         // Label: 'custom_publish_handle'
