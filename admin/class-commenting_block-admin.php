@@ -718,7 +718,7 @@ class Commenting_block_Admin {
 
 			$edited_draft = isset( $val['draft_edits']['thread'] ) ? $val['draft_edits']['thread'] : '';
 
-			$date = date( $time_format . ' ' . $date_format, $t );
+			$date = gmdate( $time_format . ' ' . $date_format, $t );
 
 			if ( 'deleted' !== $status ) {
 				array_push( $userDetails,
