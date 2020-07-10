@@ -67,29 +67,6 @@ export default class Board extends React.Component {
             });
         }
 
-        // Actions on load.
-        if (1 === this.props.onLoadFetch) {
-
-            // Handling Older WordPress Versions.
-            // The function wp.data.select("core").getCurrentUser() is not
-            // defined for v5.2.2, so getting data from PHP.
-            try {
-                wp.data.select("core").getCurrentUser().id;
-            } catch (e) {
-
-                // Fetch User details from AJAX.
-                jQuery.post(ajaxurl, {
-                    'action': 'cf_get_user'
-                }, function (user) {
-                    user = JSON.parse(user);
-                    localStorage.setItem("userID", user.id);
-                    localStorage.setItem("userName", user.name);
-                    localStorage.setItem("userURL", user.url);
-                });
-            }
-
-        }
-
         this.state = {comments: []};
     }
 

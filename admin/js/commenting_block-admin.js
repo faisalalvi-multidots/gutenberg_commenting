@@ -131,6 +131,24 @@
     // Load.
     $(window).load(function () {
         $('.cid_popup_hover').parents('.wp-block.editor-block-list__block.block-editor-block-list__block').addClass('parent_cid_popup_hover');
+
+        // Handling Older WordPress Versions.
+        // The function wp.data.select("core").getCurrentUser() is not
+        // defined for v5.2.2, so getting data from PHP.
+        try {
+            wp.data.select("core").getCurrentUser().id;
+        } catch (e) {
+
+            // Fetch User details from AJAX.
+            jQuery.post(ajaxurl, {
+                'action': 'cf_get_user'
+            }, function (user) {
+                user = JSON.parse(user);
+                localStorage.setItem("userID", user.id);
+                localStorage.setItem("userName", user.name);
+                localStorage.setItem("userURL", user.url);
+            });
+        }
     });
 
     $(document).on('click', '.markup', function () {
