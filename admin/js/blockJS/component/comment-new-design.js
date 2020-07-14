@@ -120,42 +120,26 @@ export default class Comment extends React.Component {
         return (
             <div className={"commentContainer " + commentStatus} id={this.props.timestamp}>
                 <div className="comment-header">
-                    <div className="avtar"><img src={this.props.profileURL} alt="avatar"/></div>
-                    <div className="commenter-name-time">
-                        <div className="commenter-name">{this.props.userName}</div>
-                        <div className="comment-time">{this.props.dateTime}</div>
-                    </div>
-                    {index === 0 &&
-                    <button onClick={this.resolve.bind(this)} className="btn-comment">
-                        {'Resolve'}
-                    </button>
-                    }
-                    <div className="buttons-holder">
-
-                        <div className="buttons-opner">
-
-                            <Fragment>
-                                {this.props.userID === owner &&
-                                <svg aria-hidden="true" role="img" focusable="false" className="dashicon dashicons-ellipsis"
-                                     xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
-                                    <path
-                                        d="M5 10c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-7 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
-                                </svg>
-                                }
-                            </Fragment>
-                        </div>
-                        <Fragment>
-                            {this.props.userID === owner &&
-                            <div className="buttons-wrapper">
-                                <button onClick={this.edit} className="btn btn-comment">
-                                    {'Edit'}
-                                </button>
-                                <button onClick={index === 0 ? this.resolve.bind(this) : this.remove.bind(this)} className="btn btn-comment">
-                                    {'Delete'}
-                                </button>
+                    <div className="comment-actions">
+                        {index === 0 &&
+                            <div className="comment-resolve">
+                                <input id="resolve_cb" type="checkbox" onClick={this.resolve.bind(this)} className="btn-comment" value="1" />
+                                <label for="resolve_cb">{'Resolve'}</label>
                             </div>
-                            }
-                        </Fragment>
+                        }
+                        {this.props.userID === owner &&
+                            <div className="buttons-wrapper">
+                                <i className="dashicons dashicons-edit" onClick={this.edit}></i>
+                                <i className="dashicons dashicons-trash" onClick={index === 0 ? this.resolve.bind(this) : this.remove.bind(this)}></i>
+                            </div>
+                        }
+                    </div>
+                    <div className="comment-details">
+                        <div className="avtar"><img src={this.props.profileURL} alt="avatar"/></div>
+                        <div className="commenter-name-time">
+                            <div className="commenter-name">{this.props.userName}</div>
+                            <div className="comment-time">{this.props.dateTime}</div>
+                        </div>
                     </div>
                 </div>
                 <div className="commentText">

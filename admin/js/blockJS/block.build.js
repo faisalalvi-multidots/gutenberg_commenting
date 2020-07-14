@@ -1598,44 +1598,62 @@ var Comment = function (_React$Component) {
                     { className: 'comment-header' },
                     wp.element.createElement(
                         'div',
-                        { className: 'comment-actions' },
-                        index === 0 && wp.element.createElement(
-                            'div',
-                            { className: 'comment-resolve' },
-                            wp.element.createElement('input', { id: 'resolve_cb', type: 'checkbox', onClick: this.resolve.bind(this), className: 'btn-comment', value: '1' }),
-                            wp.element.createElement(
-                                'label',
-                                { 'for': 'resolve_cb' },
-                                'Resolve'
-                            )
-                        ),
-                        this.props.userID === owner && wp.element.createElement(
-                            'div',
-                            { className: 'buttons-wrapper' },
-                            wp.element.createElement('i', { className: 'dashicons dashicons-edit', onClick: this.edit }),
-                            wp.element.createElement('i', { className: 'dashicons dashicons-trash', onClick: index === 0 ? this.resolve.bind(this) : this.remove.bind(this) })
-                        )
+                        { className: 'avtar' },
+                        wp.element.createElement('img', { src: this.props.profileURL, alt: 'avatar' })
                     ),
                     wp.element.createElement(
                         'div',
-                        { className: 'comment-details' },
+                        { className: 'commenter-name-time' },
                         wp.element.createElement(
                             'div',
-                            { className: 'avtar' },
-                            wp.element.createElement('img', { src: this.props.profileURL, alt: 'avatar' })
+                            { className: 'commenter-name' },
+                            this.props.userName
                         ),
                         wp.element.createElement(
                             'div',
-                            { className: 'commenter-name-time' },
+                            { className: 'comment-time' },
+                            this.props.dateTime
+                        )
+                    ),
+                    index === 0 && wp.element.createElement(
+                        'button',
+                        { onClick: this.resolve.bind(this), className: 'btn-comment' },
+                        'Resolve'
+                    ),
+                    wp.element.createElement(
+                        'div',
+                        { className: 'buttons-holder' },
+                        wp.element.createElement(
+                            'div',
+                            { className: 'buttons-opner' },
                             wp.element.createElement(
+                                Fragment,
+                                null,
+                                this.props.userID === owner && wp.element.createElement(
+                                    'svg',
+                                    { 'aria-hidden': 'true', role: 'img', focusable: 'false', className: 'dashicon dashicons-ellipsis',
+                                        xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 20 20' },
+                                    wp.element.createElement('path', {
+                                        d: 'M5 10c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-7 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z' })
+                                )
+                            )
+                        ),
+                        wp.element.createElement(
+                            Fragment,
+                            null,
+                            this.props.userID === owner && wp.element.createElement(
                                 'div',
-                                { className: 'commenter-name' },
-                                this.props.userName
-                            ),
-                            wp.element.createElement(
-                                'div',
-                                { className: 'comment-time' },
-                                this.props.dateTime
+                                { className: 'buttons-wrapper' },
+                                wp.element.createElement(
+                                    'button',
+                                    { onClick: this.edit, className: 'btn btn-comment' },
+                                    'Edit'
+                                ),
+                                wp.element.createElement(
+                                    'button',
+                                    { onClick: index === 0 ? this.resolve.bind(this) : this.remove.bind(this), className: 'btn btn-comment' },
+                                    'Delete'
+                                )
                             )
                         )
                     )

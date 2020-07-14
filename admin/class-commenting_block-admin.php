@@ -678,6 +678,9 @@ class Commenting_block_Admin {
 		$current_post_id = $_POST['currentPostID'];
 		$metaId          = $_POST['metaId'];
 
+		// $current_post_id = filter_input( INPUT_GET, "currentPostID", FILTER_SANITIZE_NUMBER_INT );
+		// $metaId          = filter_input( INPUT_GET, "metaId", FILTER_SANITIZE_STRING );
+
 		// Update Current Drafts.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
 		$current_drafts = maybe_unserialize( $current_drafts );
@@ -710,9 +713,9 @@ class Commenting_block_Admin {
 	 * @return mixed|\WP_REST_Response
 	 */
 	public function cf_get_comments() {
-		$current_post_id = $_GET['currentPostID'];
+		$current_post_id = filter_input( INPUT_GET, "currentPostID", FILTER_SANITIZE_NUMBER_INT );
 		$userDetails     = array();
-		$elID            = $_GET['elID'];
+		$elID            = filter_input( INPUT_GET, "elID", FILTER_SANITIZE_STRING );
 
 		$commentList = get_post_meta( $current_post_id, $elID, true );
 
