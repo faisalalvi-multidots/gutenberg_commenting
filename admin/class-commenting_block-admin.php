@@ -113,44 +113,55 @@ class Commenting_block_Admin {
 				$prev_state['resolved_by']        = get_current_user_id();
 				update_post_meta( $post_ID, $el, $prev_state );
 
+				$current_user = wp_get_current_user();
+				$current_user_email = $current_user->user_email;
+
 				// Send Email.
-				$comments = get_post_meta( $post_ID, "$el" );
+				$comments = get_post_meta( $post_ID, "$el", true );
 				$comments = maybe_unserialize( $comments );
 				$comments = isset( $comments['comments'] ) ? $comments['comments'] : '';
 
 				if ( ! empty( $comments ) && is_array( $comments ) ) {
 
+					$users_emails = array();
+
 					$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 					$html = 'Hi Admin,<br><br>The following comment has been resolved:<br><br>';
 
-					foreach ( $comments as $timestamp => $c ) {
+					foreach ( $comments as $timestamp => $arr ) {
 
-						foreach ( $c as $arr ) {
-
+						if( isset( $arr['status'] ) && 'permanent_draft' !== $arr['status'] ) {
 							$user_info   = get_userdata( $arr['userData'] );
 							$username    = $user_info->display_name;
+							$users_emails[] = $user_info->user_email;
 							$profile_url = get_avatar_url( $user_info->user_email );
 							$date        = date( $time_format . ' ' . $date_format, $timestamp );
 							$comment     = $arr['thread'];
+							$status = $arr['status'];
+							$draft = 'draft' === $status ? '(draft)' : '';
 
 							$html .= "<div className='comment-header'>
-						          <div className='avtar'><img src='$profile_url' alt='avatar' /></div>
-						          <div className='commenter-name-time'>
-						            <div className='commenter-name'>$username</div>
-						            <div className='comment-time'>$date</div>
-						            <div className='comment'>Comment: $comment</div>
-						          </div>
-					          </div>";
+									<div className='avtar'><img src='$profile_url' alt='avatar' /></div>
+									<div className='commenter-name-time'>
+									<div className='commenter-name'>$username</div>
+									<div className='comment-time'>$date</div>
+									<div className='comment'>Comment: $comment $draft</div>
+									</div>
+								</div>";
 
 							$html .= ' <br> ';
 						}
-						$html .= ' <br> ';
 					}
-
+					
 					$html .= "<br>Thank you!";
 
-					wp_mail( 'admin@gmail.com', 'NABPilot: Comment Resolved', $html, $headers );
+					$users_emails = array_unique( $users_emails );
+					if ( ( $key = array_search( $current_user_email, $users_emails ) ) !== false ) {
+						unset( $users_emails[ $key ] );
+					}
+
+					wp_mail( $users_emails, 'NABPilot: Comment Resolved', $html, $headers );
 				}
 			}
 		}
@@ -288,32 +299,34 @@ class Commenting_block_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/commenting_block-admin.js', array( 'jquery' ), $this->version, false );
-		wp_enqueue_script( 'commenting-block', plugin_dir_url( __FILE__ ) . 'js/blockJS/block.build.js', array(
-			'jquery',
-			'wp-blocks',
-			'wp-i18n',
-			'wp-element',
-			'wp-editor',
-			'wp-components',
-			'wp-annotations',
-			'wp-annotations',
-			'jquery-ui-datepicker',
-			'wp-api-fetch',
-			'wp-plugins',
-			'wp-edit-post',
-		), $this->version, true );
+		$screen = get_current_screen();
+		if ( $screen->is_block_editor ) {
+			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/commenting_block-admin.js', array( 'jquery' ), $this->version, false );
+			wp_enqueue_script( 'commenting-block', plugin_dir_url( __FILE__ ) . 'js/blockJS/block.build.js', array(
+				'jquery',
+				'wp-blocks',
+				'wp-i18n',
+				'wp-element',
+				'wp-editor',
+				'wp-components',
+				'wp-annotations',
+				'wp-annotations',
+				'jquery-ui-datepicker',
+				'wp-api-fetch',
+				'wp-plugins',
+				'wp-edit-post',
+			), $this->version, true );
 
-		global $wp_roles;
-		$current_user       = wp_get_current_user();
-		$current_user_role  = $wp_roles->roles[ $current_user->roles[0] ][ 'name' ];
-		$date_format        = get_option( 'date_format' );
-		$time_format        = get_option( 'time_format' );
-		wp_localize_script( 'commenting-block', 'suggestionBlock', array( 'userRole' => $current_user_role, 'dateFormat' => $date_format, 'timeFormat' => $time_format ) );
+			global $wp_roles;
+			$current_user       = wp_get_current_user();
+			$current_user_role  = $wp_roles->roles[ $current_user->roles[0] ][ 'name' ];
+			$date_format        = get_option( 'date_format' );
+			$time_format        = get_option( 'time_format' );
+			wp_localize_script( 'commenting-block', 'suggestionBlock', array( 'userRole' => $current_user_role, 'dateFormat' => $date_format, 'timeFormat' => $time_format ) );
 
-		wp_enqueue_script( 'jquery-ui-draggable' );
-		wp_enqueue_script( 'jquery-ui-droppable' );
-
+			wp_enqueue_script( 'jquery-ui-draggable' );
+			wp_enqueue_script( 'jquery-ui-droppable' );
+		}
 	}
 
 	/**
@@ -624,9 +637,9 @@ class Commenting_block_Admin {
 		$changed = 0;
 
 		// Move previous drafts to Permanent Draft Stack.
-		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
-		$current_drafts = maybe_unserialize( $current_drafts );
-		$current_drafts = empty( $current_drafts ) ? array() : $current_drafts;
+		$current_drafts   = get_post_meta( $current_post_id, 'current_drafts', true );
+		$current_drafts   = maybe_unserialize( $current_drafts );
+		$current_drafts   = empty( $current_drafts ) ? array() : $current_drafts;
 		$permanent_drafts = get_post_meta( $current_post_id, 'permanent_drafts', true );
 		$permanent_drafts = maybe_unserialize( $permanent_drafts );
 
