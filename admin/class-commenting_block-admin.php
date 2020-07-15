@@ -538,10 +538,19 @@ class Commenting_block_Admin {
 	 */
 	public function cf_update_comment() {
 
-		$current_post_id = $_POST['currentPostID'];
-		$metaId          = $_POST['metaId'];
+		$current_post_id = filter_input( INPUT_POST, "currentPostID", FILTER_SANITIZE_NUMBER_INT );
+		$metaId          = filter_input( INPUT_POST, "metaId", FILTER_SANITIZE_STRING );
+		
+		//$edited_comment = filter_input( INPUT_POST, "editedComment", FILTER_SANITIZE_STRING );
+		//print_r($_POST['editedComment']);die();
+
 		$edited_comment  = str_replace( "\\", "", $_POST['editedComment'] );
+		//$edited_comment  = str_replace( "\\", "", $edited_comment );
+
 		$edited_comment  = json_decode( $edited_comment, true );
+		
+		//print_r($edited_comment);die();
+		
 		$old_timestamp   = $edited_comment['timestamp'];
 
 		$commentListOld = get_post_meta( $current_post_id, $metaId, true );
@@ -570,9 +579,9 @@ class Commenting_block_Admin {
 	 */
 	public function cf_delete_comment() {
 
-		$current_post_id = $_POST['currentPostID'];
-		$metaId          = $_POST['metaId'];
-		$timestamp       = $_POST['timestamp'];
+		$current_post_id = filter_input( INPUT_POST, "currentPostID", FILTER_SANITIZE_NUMBER_INT );
+		$metaId          = filter_input( INPUT_POST, "metaId", FILTER_SANITIZE_STRING );
+		$timestamp       = filter_input( INPUT_POST, "timestamp", FILTER_SANITIZE_NUMBER_INT );
 
 		// Update Current Drafts.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
@@ -589,7 +598,7 @@ class Commenting_block_Admin {
 	 * Reset Drafts meta.
 	 */
 	public function cf_reset_drafts_meta() {
-		$current_post_id = $_POST['currentPostID'];
+		$current_post_id = filter_input( INPUT_POST, "currentPostID", FILTER_SANITIZE_NUMBER_INT );;
 
 		$changed = 0;
 
@@ -632,7 +641,7 @@ class Commenting_block_Admin {
 	 * Merge Drafts meta.
 	 */
 	public function cf_merge_draft_stacks() {
-		$current_post_id = $_POST['currentPostID'];
+		$current_post_id = filter_input( INPUT_POST, "currentPostID", FILTER_SANITIZE_NUMBER_INT );
 
 		$changed = 0;
 
@@ -665,7 +674,7 @@ class Commenting_block_Admin {
 		// Flush Permanent Draft Stack.
 		update_post_meta( $current_post_id, 'permanent_drafts', '' );
 
-		echo json_encode( $current_drafts );
+		echo wp_json_encode( $current_drafts );
 		wp_die();
 
 	}
@@ -675,11 +684,8 @@ class Commenting_block_Admin {
 	 */
 	public function cf_resolve_thread() {
 
-		$current_post_id = $_POST['currentPostID'];
-		$metaId          = $_POST['metaId'];
-
-		// $current_post_id = filter_input( INPUT_GET, "currentPostID", FILTER_SANITIZE_NUMBER_INT );
-		// $metaId          = filter_input( INPUT_GET, "metaId", FILTER_SANITIZE_STRING );
+		$current_post_id = filter_input( INPUT_POST, "currentPostID", FILTER_SANITIZE_NUMBER_INT );
+		$metaId          = filter_input( INPUT_POST, "metaId", FILTER_SANITIZE_STRING );
 
 		// Update Current Drafts.
 		$current_drafts = get_post_meta( $current_post_id, 'current_drafts', true );
