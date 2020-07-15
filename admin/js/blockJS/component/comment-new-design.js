@@ -124,7 +124,7 @@ export default class Comment extends React.Component {
                         {index === 0 &&
                             <div className="comment-resolve">
                                 <input id="resolve_cb" type="checkbox" onClick={this.resolve.bind(this)} className="btn-comment" value="1" />
-                                <label for="resolve_cb">{'Resolve'}</label>
+                                <label for="resolve_cb">{'Mark as a Resolved'}</label>
                             </div>
                         }
                         {this.props.userID === owner &&
